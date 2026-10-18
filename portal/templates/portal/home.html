@@ -1,0 +1,15 @@
+{% extends "portal/base.html" %}{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Hello, {{ request.employee.first_name }}</h1>
+<p class="mut">{{ request.employee.employee_no }}{% if request.employee.department %} · {{ request.employee.department }}{% endif %}</p>
+<div class="card"><strong>Latest payslip</strong>
+{% if latest %}<p style="margin:8px 0 0">{{ latest.run.year }}-{{ latest.run.month|stringformat:"02d" }}: net pay <span class="net">{{ latest.net_pay|floatformat:"2g" }}</span>
+ <a class="btn" href="{% url 'portal:payslip' latest.pk %}">View</a> <a href="{% url 'portal:payslips' %}">All payslips</a></p>
+{% else %}<p class="mut" style="margin:8px 0 0">No payslips yet. They appear here once payroll for a month is approved.</p>{% endif %}</div>
+{% if request.portal_leave %}<div class="card"><div class="bar"><strong>Leave this year</strong><a class="btn p" href="{% url 'portal:leave_new' %}">Request leave</a></div>
+{% for lt, b in balances %}<p style="margin:4px 0">{{ lt.name }}: <strong>{{ b.remaining|default_if_none:"No limit" }}</strong> of {{ b.entitled }} day(s) left</p>{% empty %}<p class="mut">No leave allowance has been set up for you yet.</p>{% endfor %}
+{% if pending %}<p class="mut" style="margin-bottom:0">{{ pending }} request{{ pending|pluralize }} waiting for approval. <a href="{% url 'portal:leave' %}">View</a></p>{% endif %}</div>{% endif %}
+{% if request.portal_attendance %}<div class="card"><div class="bar"><strong>This month</strong><a href="{% url 'portal:attendance' %}">Attendance</a></div>
+<p style="margin:4px 0">Days marked absent: <strong>{{ absent_days|floatformat:"-1" }}</strong>{% if absent_days %} <span class="mut">(these reduce this month's pay)</span>{% endif %}</p>
+<p style="margin:4px 0">Overtime waiting for approval: <strong>{{ overtime_waiting }}</strong> <a href="{% url 'portal:overtime' %}">Overtime</a></p></div>{% endif %}
+{% endblock %}

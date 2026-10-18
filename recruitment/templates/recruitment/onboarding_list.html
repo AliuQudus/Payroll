@@ -1,0 +1,6 @@
+{% extends "payroll/base.html" %}{% block title %}Onboarding{% endblock %}
+{% block content %}<h1>Onboarding</h1>
+<p class="mut">New hires and the checklist to complete before they are fully set up.</p>
+<div class="card scroll"><table><thead><tr><th>Employee</th><th>Starts</th><th>Checklist</th><th>Status</th></tr></thead><tbody>
+{% for o in rows %}<tr><td><a href="{% url 'recruitment:onboarding_detail' o.pk %}">{{ o.employee }}</a></td><td>{{ o.start_date|date:"j M Y" }}</td><td>{{ o.done }} of {{ o.total }} done</td><td><span class="tag">{{ o.get_status_display }}</span></td></tr>
+{% empty %}<tr><td colspan="4" class="mut">Nobody has been hired through recruitment yet.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

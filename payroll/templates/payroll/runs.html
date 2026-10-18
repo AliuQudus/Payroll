@@ -1,0 +1,13 @@
+{% extends "payroll/base.html" %}{% block title %}Payroll runs{% endblock %}
+{% block content %}<div class="bar"><h1>Payroll runs</h1></div>
+<form method="post" class="card">{% csrf_token %}<strong>Start a new run</strong>
+{{ form.non_field_errors }}
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">
+<label style="margin:0">Year<br>{{ form.year }}{{ form.year.errors }}</label>
+<label style="margin:0">Month (1 to 12)<br>{{ form.month }}{{ form.month.errors }}</label>
+<button class="p">Create run</button></div></form>
+<div class="card scroll"><table><thead><tr><th>Period</th><th>Status</th><th>Payslips</th><th></th></tr></thead><tbody>
+{% for r in runs %}<tr><td>{{ r.year }}-{{ r.month|stringformat:"02d" }}</td><td><span class="tag">{{ r.get_status_display }}</span></td>
+<td>{{ r.payslips.count }}</td><td><a href="{% url 'run_detail' r.pk %}">Open</a></td></tr>
+{% empty %}<tr><td colspan="4" class="mut">No runs yet. Create the first one above.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

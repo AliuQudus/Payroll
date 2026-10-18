@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Payroll tester</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#14202b;--mut:#5f6c79;--bd:#d9e0e7;--ac:#0b5d75;--acbg:#e2f1f5;--er:#b42318;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f151b;--card:#18212a;--tx:#e6ebf0;--mut:#93a1ae;--bd:#2a3541;--ac:#5cc0dc;--acbg:#12313c;--er:#f97066}}
+:root[data-theme="dark"]{--bg:#0f151b;--card:#18212a;--tx:#e6ebf0;--mut:#93a1ae;--bd:#2a3541;--ac:#5cc0dc;--acbg:#12313c;--er:#f97066}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:16px;margin:0 0 10px}h3{font-size:13px;margin:14px 0 4px;color:var(--mut);font-weight:600}
+.sub{color:var(--mut);margin:0 0 16px;max-width:70ch}
+.grid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:920px){.grid{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.sticky{position:sticky;top:12px;align-self:start}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:16px}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:13px}
+#els{min-width:720px}th{text-align:left;color:var(--mut);font-weight:600;padding:4px 4px}td{padding:3px 4px;vertical-align:middle}
+input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:6px 8px;width:100%;box-sizing:border-box;min-width:0}
+input[type=checkbox]{width:auto}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--mut)}label input{margin-top:3px}
+label.chk{display:flex;gap:6px;align-items:center;color:var(--tx);font-size:14px;padding-top:18px}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:6px 12px}
+button.p{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600}
+.n{text-align:right;font-variant-numeric:tabular-nums}.mut{color:var(--mut);font-size:12px}
+.err{color:var(--er);font-weight:600;margin:0}.note{background:var(--acbg);border-radius:6px;padding:8px 10px;font-size:13px;margin:10px 0 0}
+.out td{padding:4px 0;border-bottom:1px solid var(--bd)}
+.net{display:flex;justify-content:space-between;align-items:baseline;background:var(--acbg);border-radius:8px;padding:12px;margin:12px 0 4px}
+.net b{font-size:24px;color:var(--ac);font-variant-numeric:tabular-nums}
+</style></head><body><div class="wrap">
+<h1>Payroll tester</h1>
+<p class="sub">Change the gross pay, the salary elements or the tax rules and the payslip recalculates straight away. Nothing is saved when you close the page.</p>
+<div class="grid"><div>
+<div class="card"><h2>Employee</h2><div class="f">
+<label>Gross monthly pay<input type="number" data-s="gross" value="500000"></label>
+<label>Annual rent paid<input type="number" data-s="rent" value="0"></label>
+<label class="chk"><input type="checkbox" data-s="penOn" checked>Pension applies</label>
+<label class="chk"><input type="checkbox" data-s="nhfOn" checked>NHF applies</label></div></div>
+<div class="card"><h2>Salary elements</h2>
+<p class="mut" style="margin:0 0 8px">Use GROSS or another element's code in a formula, for example GROSS*0.4, BASIC*0.1 or MIN(BASIC*0.2, 500000). Functions: MIN, MAX, ABS, ROUND, IF.</p>
+<div class="scroll"><table id="els"><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Formula</th><th>Tax</th><th>Pen</th><th>NHF</th><th>Cap</th><th></th></tr></thead><tbody></tbody></table></div>
+<p style="margin:10px 0 0"><button id="add" class="p">Add element</button></p></div>
+<div class="card"><h2>Statutory rules</h2><div class="f">
+<label>Pension, employee %<input type="number" data-s="pe" value="8" step="any"></label>
+<label>Pension, employer %<input type="number" data-s="pr" value="10" step="any"></label>
+<label>NHF %<input type="number" data-s="nhf" value="0" step="any"></label>
+<label>NSITF %<input type="number" data-s="nsitf" value="0" step="any"></label>
+<label>ITF %<input type="number" data-s="itf" value="0" step="any"></label>
+<label>Rent relief %<input type="number" data-s="rr" value="20" step="any"></label>
+<label>Rent relief cap, per year<input type="number" data-s="rc" value="500000"></label></div>
+<h3>PAYE bands, on annual taxable income</h3>
+<div class="scroll"><table id="bands" style="min-width:360px"><thead><tr><th>From</th><th>To (blank = no limit)</th><th>Rate %</th></tr></thead><tbody></tbody></table></div>
+<p class="note">These bands are sample figures. Check them against your NTA 2025 source before relying on any result.</p></div>
+</div>
+<div class="sticky card out"><h2>Payslip</h2><div id="out"></div></div>
+</div></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+const fmt=x=>'₦'+x.toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2});
+const S={gross:500000,rent:0,penOn:1,nhfOn:1,pe:8,pr:10,nhf:0,nsitf:0,itf:0,rr:20,rc:500000};
+let els=[
+{code:'BASIC',name:'Basic',kind:'EARNING',formula:'GROSS*0.4',tax:1,pen:1,nhf:1,cap:''},
+{code:'HOUSING',name:'Housing',kind:'EARNING',formula:'GROSS*0.3',tax:1,pen:1,nhf:0,cap:''},
+{code:'TRANSPORT',name:'Transport',kind:'EARNING',formula:'GROSS*0.3',tax:1,pen:1,nhf:0,cap:''}];
+let bands=[[0,800000,0],[800000,3000000,15],[3000000,12000000,18],[12000000,25000000,21],[25000000,50000000,23],[50000000,'',25]];
+const FN={MIN:Math.min,MAX:Math.max,ABS:Math.abs,ROUND:(x,n=0)=>{const f=10**n;return Math.round(x*f)/f},IF:(c,a,b)=>c?a:b};
+function parse(src){
+const re=/\s*(?:(\d*\.?\d+(?:e[+-]?\d+)?)|([A-Za-z_]\w*)|(>=|<=|==|!=|[-+*\/(),<>]))/iy,t=[];let i=0;src=String(src).trim();
+if(!src)throw Error('Formula is empty');
+while(i<src.length){re.lastIndex=i;const m=re.exec(src);if(!m)throw Error('Invalid character in formula');t.push(m[1]!==undefined?{n:parseFloat(m[1])}:m[2]?{id:m[2].toUpperCase()}:{op:m[3]});i=re.lastIndex}
+let p=0;const is=o=>t[p]&&t[p].op===o;const eat=o=>{if(!is(o))throw Error('Expected '+o);p++};
+function cmp(){let a=add();const x=t[p];if(x&&['>','<','>=','<=','==','!='].includes(x.op)){p++;a=['b',x.op,a,add()]}return a}
+function add(){let a=mul();while(is('+')||is('-')){const o=t[p++].op;a=['b',o,a,mul()]}return a}
+function mul(){let a=un();while(is('*')||is('/')){const o=t[p++].op;a=['b',o,a,un()]}return a}
+function un(){if(is('-')){p++;return['u',un()]}return prim()}
+function prim(){const x=t[p++];if(!x)throw Error('Formula ends too early');
+if(x.n!==undefined)return['n',x.n];
+if(x.id){if(is('(')){p++;const a=[];if(!is(')')){a.push(cmp());while(is(',')){p++;a.push(cmp())}}eat(')');if(!FN[x.id])throw Error('Unknown function '+x.id);return['f',x.id,a]}return['v',x.id]}
+if(x.op==='('){const e=cmp();eat(')');return e}
+throw Error('Unexpected '+x.op)}
+const ast=cmp();if(p<t.length)throw Error('Unexpected text after the formula');return ast}
+function ev(n,v){switch(n[0]){
+case'n':return n[1];
+case'v':if(!(n[1] in v))throw Error('Unknown name '+n[1]);return v[n[1]];
+case'u':return -ev(n[1],v);
+case'f':return FN[n[1]](...n[2].map(a=>ev(a,v)));
+case'b':{const a=ev(n[2],v),b=ev(n[3],v);switch(n[1]){case'+':return a+b;case'-':return a-b;case'*':return a*b;case'/':if(b===0)throw Error('Division by zero');return a/b;case'>':return a>b;case'<':return a<b;case'>=':return a>=b;case'<=':return a<=b;case'==':return a===b;case'!=':return a!==b}}}}
+function refs(n,s=new Set()){if(n[0]==='v')s.add(n[1]);else if(n[0]==='b')refs(n[2],s),refs(n[3],s);else if(n[0]==='u')refs(n[1],s);else if(n[0]==='f')n[2].forEach(a=>refs(a,s));return s}
+function order(list){const m={};
+list.forEach(e=>{const k=e.code.trim().toUpperCase();if(!k)throw Error('Every element needs a code');if(m[k])throw Error('Duplicate code '+k);m[k]={e}});
+for(const k in m){try{m[k].ast=parse(m[k].e.formula)}catch(x){throw Error(k+': '+x.message)}
+const u=[...refs(m[k].ast)].filter(r=>r!=='GROSS'&&!m[r]);if(u.length)throw Error(k+': unknown reference '+u.join(', '))}
+const out=[],st={};
+const visit=(k,tr)=>{if(st[k]===2)return;if(st[k]===1)throw Error('Circular reference: '+[...tr,k].join(' → '));st[k]=1;[...refs(m[k].ast)].filter(r=>m[r]).sort().forEach(d=>visit(d,[...tr,k]));st[k]=2;out.push({k,...m[k]})};
+Object.keys(m).sort().forEach(k=>visit(k,[]));return out}
+function compute(){
+const g=r2(+S.gross||0),v={GROSS:g},lines=[];
+for(const o of order(els)){let a=ev(o.ast,v);if(typeof a!=='number'||!isFinite(a))throw Error(o.k+': the formula must give a number');
+const cap=o.e.cap===''?NaN:+o.e.cap;if(!isNaN(cap))a=Math.min(a,cap);a=r2(a);v[o.k]=a;lines.push({code:o.k,name:o.e.name,kind:o.e.kind,amt:a,e:o.e})}
+const sum=(kind,f)=>lines.filter(l=>l.kind===kind&&(!f||l.e[f])).reduce((s,l)=>s+l.amt,0);
+const earn=sum('EARNING'),tax=sum('EARNING','tax'),pb=sum('EARNING','pen'),nb=sum('EARNING','nhf'),eDed=sum('DEDUCTION'),eEmp=sum('EMPLOYER');
+const pe=S.penOn?r2(pb*S.pe/100):0,pr=S.penOn?r2(pb*S.pr/100):0,nhf=S.nhfOn?r2(nb*S.nhf/100):0,ns=r2(earn*S.nsitf/100),itf=r2(earn*S.itf/100);
+const relief=Math.min((+S.rent||0)*S.rr/100,+S.rc||0);
+const at=Math.max((tax-pe-nhf)*12-relief,0);let ann=0;
+for(const[lo,hi,rt]of bands){const L=+lo||0;if(at<=L)break;const top=hi===''?at:Math.min(at,+hi);ann+=(top-L)*(+rt/100)}
+const paye=r2(ann/12);
+[['PENSION_EE','Pension (employee)','DEDUCTION',pe],['NHF','National Housing Fund','DEDUCTION',nhf],['PAYE','PAYE tax','DEDUCTION',paye],['PENSION_ER','Pension (employer)','EMPLOYER',pr],['NSITF','NSITF','EMPLOYER',ns],['ITF','ITF','EMPLOYER',itf]].forEach(([code,name,kind,amt])=>{if(amt)lines.push({code,name,kind,amt})});
+const ded=eDed+pe+nhf+paye;
+return{g,lines,earn,ded,paye,net:r2(earn-ded),cost:r2(earn+eEmp+pr+ns+itf),at}}
+function render(){const out=$('#out');
+try{const r=compute();
+const grp=(t,k)=>{const ls=r.lines.filter(l=>l.kind===k);return ls.length?`<h3>${t}</h3><table>${ls.map(l=>`<tr><td>${esc(l.name)} <span class="mut">${esc(l.code)}</span></td><td class="n">${fmt(l.amt)}</td></tr>`).join('')}</table>`:''};
+out.innerHTML=grp('Earnings','EARNING')+grp('Deductions','DEDUCTION')
++`<div class="net"><span>Net pay</span><b>${fmt(r.net)}</b></div>`
++`<table><tr><td>Total earnings</td><td class="n">${fmt(r.earn)}</td></tr><tr><td>Total deductions</td><td class="n">${fmt(r.ded)}</td></tr><tr><td>PAYE per month</td><td class="n">${fmt(r.paye)}</td></tr><tr><td>Annual taxable income</td><td class="n">${fmt(r.at)}</td></tr><tr><td>Total cost to employer</td><td class="n">${fmt(r.cost)}</td></tr></table>`
++grp('Employer contributions','EMPLOYER')
++(Math.abs(r.earn-r.g)>0.01?`<p class="note">Your earnings add up to ${fmt(r.earn)}, but gross pay is ${fmt(r.g)}. Adjust the formulas if they should match.</p>`:'')
+}catch(e){out.innerHTML=`<p class="err">${esc(e.message)}</p>`}}
+function drawEls(){$('#els tbody').innerHTML=els.map((e,i)=>`<tr>
+<td><input data-i="${i}" data-k="code" value="${esc(e.code)}" size="9"></td>
+<td><input data-i="${i}" data-k="name" value="${esc(e.name)}"></td>
+<td><select data-i="${i}" data-k="kind">${[['EARNING','Earning'],['DEDUCTION','Deduction'],['EMPLOYER','Employer']].map(([k,l])=>`<option value="${k}"${e.kind===k?' selected':''}>${l}</option>`).join('')}</select></td>
+<td><input data-i="${i}" data-k="formula" value="${esc(e.formula)}"></td>
+${['tax','pen','nhf'].map(k=>`<td><input type="checkbox" data-i="${i}" data-k="${k}"${e[k]?' checked':''}></td>`).join('')}
+<td><input type="number" data-i="${i}" data-k="cap" value="${esc(e.cap)}" placeholder="none"></td>
+<td><button data-del="${i}" aria-label="Remove ${esc(e.code)}">×</button></td></tr>`).join('')}
+function drawBands(){$('#bands tbody').innerHTML=bands.map((b,i)=>`<tr>${[0,1,2].map(j=>`<td><input type="number" step="any" data-b="${i}" data-c="${j}" value="${b[j]}"></td>`).join('')}</tr>`).join('')}
+$('#els').addEventListener('input',ev=>{const t=ev.target;if(t.dataset.i===undefined)return;els[t.dataset.i][t.dataset.k]=t.type==='checkbox'?(t.checked?1:0):t.value;render()});
+$('#els').addEventListener('click',ev=>{const d=ev.target.dataset.del;if(d===undefined)return;els.splice(+d,1);drawEls();render()});
+$('#bands').addEventListener('input',ev=>{const t=ev.target;bands[t.dataset.b][t.dataset.c]=t.value===''?'':parseFloat(t.value);render()});
+document.querySelectorAll('[data-s]').forEach(el=>el.addEventListener('input',()=>{S[el.dataset.s]=el.type==='checkbox'?(el.checked?1:0):(parseFloat(el.value)||0);render()}));
+$('#add').addEventListener('click',()=>{els.push({code:'ITEM'+(els.length+1),name:'New element',kind:'EARNING',formula:'0',tax:1,pen:0,nhf:0,cap:''});drawEls();render()});
+drawEls();drawBands();render();
+</script></body></html>

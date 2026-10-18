@@ -1,0 +1,8 @@
+{% extends "payroll/base.html" %}{% block title %}Exits{% endblock %}
+{% block content %}
+<div class="bar"><h1>Exits and final settlement</h1><a class="btn p" href="{% url 'exits:new' %}">Start an exit</a></div>
+<div class="card scroll"><table><thead><tr><th>Employee</th><th>Reason</th><th>Last working day</th><th>Clearance</th><th>Status</th></tr></thead><tbody>
+{% for e in exits %}<tr><td><a href="{% url 'exits:detail' e.pk %}">{{ e.employee }}</a></td><td>{{ e.get_reason_display }}</td>
+<td>{{ e.last_working_day|date:"j M Y" }}</td><td>{{ e.done }} of {{ e.total }} done</td><td><span class="tag">{{ e.get_status_display }}</span></td></tr>
+{% empty %}<tr><td colspan="5" class="mut">No exits yet.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

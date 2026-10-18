@@ -1,0 +1,11 @@
+{% extends base_template %}{% block title %}Two-factor sign-in{% endblock %}
+{% block content %}
+<h1>Two-factor sign-in</h1>
+<form method="post" class="card" autocomplete="off">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+<p>Open your authenticator app and enter the 6-digit code it shows for this site, {{ user.get_username }}.</p>
+{% if error %}<div class="msg error">{{ error }}</div>{% endif %}
+<label>Code<br><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="20" autofocus required style="max-width:14em"></label>
+<p class="mut">Lost your phone? Enter one of your recovery codes instead. Each works once.</p>
+<p style="margin-top:14px"><button class="p">Continue</button></p></form>
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Sign out</button></form>
+{% endblock %}

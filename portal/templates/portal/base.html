@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme|default:'system' }}"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}Employee portal{% endblock %}</title>
+{% include "payroll/_style.html" %}</head><body>
+<header class="noprint"><div class="top">
+<span class="brand">{% if request.employee %}{{ request.employee.company.name }}{% else %}Employee portal{% endif %}</span>
+<span>{% if request.portal_staff %}<a href="{% url 'home' %}">Back to payroll</a> · {% endif %}<a href="{% url 'account' %}" title="Your account and appearance">{{ user.get_username }}</a>
+{% include "payroll/_theme_button.html" %}
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Log out</button></form></span></div>
+{% if request.employee %}<nav>
+<a href="{% url 'portal:home' %}">Home</a><a href="{% url 'portal:payslips' %}">Payslips</a>
+{% if request.portal_leave %}<a href="{% url 'portal:leave' %}">Leave</a>{% endif %}
+{% if request.portal_attendance %}<a href="{% url 'portal:attendance' %}">Attendance</a><a href="{% url 'portal:overtime' %}">Overtime</a>{% endif %}
+{% if request.portal_hr %}<a href="{% url 'portal:details' %}">My details</a>{% endif %}</nav>{% endif %}</header>
+<div class="wrap">
+{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+{% block content %}{% endblock %}
+</div>
+{% include "payroll/_theme_script.html" %}
+</body></html>

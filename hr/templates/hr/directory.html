@@ -1,0 +1,16 @@
+{% extends "payroll/base.html" %}{% block title %}HR directory{% endblock %}
+{% block content %}
+<div class="bar"><h1>HR directory</h1></div>
+<form method="get" class="card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<input name="q" value="{{ q }}" placeholder="Search name, number, department or job title" aria-label="Search" style="max-width:360px">
+<select name="show" style="width:auto" aria-label="Show"><option value="active"{% if show == "active" %} selected{% endif %}>Active employees</option><option value="all"{% if show == "all" %} selected{% endif %}>Include inactive</option></select>
+<button>Search</button></form>
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Name</th><th>Job title</th><th>Department</th><th>Type</th><th>Hired</th><th>Service</th><th>Reports to</th></tr></thead><tbody>
+{% for r in rows %}<tr>
+<td>{{ r.emp.employee_no }}</td>
+<td><a href="{% url 'hr:detail' r.emp.pk %}">{{ r.emp }}</a>{% if not r.emp.is_active %} <span class="tag">Inactive</span>{% endif %}</td>
+{% if r.profile %}<td>{{ r.profile.job_title }}</td><td>{{ r.emp.department }}</td><td>{{ r.profile.get_employment_type_display }}</td>
+<td>{{ r.profile.hire_date|date:"j M Y" }}</td><td>{{ r.service }}</td><td>{{ r.profile.manager|default:"" }}</td>
+{% else %}<td colspan="6" class="mut">No HR record yet. <a href="{% url 'hr:profile_edit' r.emp.pk %}">Add one</a></td>{% endif %}
+</tr>{% empty %}<tr><td colspan="8" class="mut">No employees match.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "payroll/base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ title }}</h1><a class="btn p" href="{% url 'section_new' section %}">Add</a></div>
+<p class="mut">{{ hint }}</p>
+{% if filters %}<p>{% for key, label in filters %}<a class="btn{% if key == status %} p{% endif %}" href="?status={{ key }}">{{ label }}</a> {% endfor %}</p>{% endif %}
+<div class="card scroll"><table><thead><tr>{% for h in heads %}<th>{{ h }}</th>{% endfor %}<th></th></tr></thead><tbody>
+{% for obj, vals in rows %}<tr>{% for v in vals %}<td>{% if v is True %}Yes{% elif v is False %}No{% else %}{{ v|default_if_none:"" }}{% endif %}</td>{% endfor %}
+<td class="act">{% if obj.is_treated %}<a href="{% url 'section_view' section obj.pk %}">View</a> <span class="mut">(locked)</span>{% else %}<a href="{% url 'section_edit' section obj.pk %}">Edit</a><a href="{% url 'section_delete' section obj.pk %}">Delete</a>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="{{ heads|length|add:1 }}" class="mut">Nothing here yet. Use Add to create the first one.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

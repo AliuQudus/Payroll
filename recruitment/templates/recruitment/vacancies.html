@@ -1,0 +1,8 @@
+{% extends "payroll/base.html" %}{% block title %}Vacancies{% endblock %}
+{% block content %}
+<div class="bar"><h1>Vacancies</h1><span><a class="btn p" href="{% url 'recruitment:vacancy_new' %}">New vacancy</a></span></div>
+<form method="get" class="card" style="display:flex;gap:10px;align-items:center"><label style="margin:0">Show <select name="status" onchange="this.form.submit()" style="width:auto">
+<option value="">All</option>{% for value, label in statuses %}<option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></form>
+<div class="card scroll"><table><thead><tr><th>Vacancy</th><th>Department</th><th class="n">Positions</th><th class="n">Applicants</th><th class="n">In progress</th><th class="n">Hired</th><th>Status</th></tr></thead><tbody>
+{% for v in rows %}<tr><td><a href="{% url 'recruitment:vacancy' v.pk %}">{{ v.title }}</a></td><td>{{ v.department }}</td><td class="n">{{ v.headcount }}</td><td class="n">{{ v.total }}</td><td class="n">{{ v.live }}</td><td class="n">{{ v.hired }}</td><td><span class="tag">{{ v.get_status_display }}</span></td></tr>
+{% empty %}<tr><td colspan="7" class="mut">No vacancies.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

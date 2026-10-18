@@ -1,0 +1,5 @@
+{% extends "payroll/base.html" %}{% block title %}Log in{% endblock %}
+{% block content %}<h1>Log in</h1>
+<form method="post" class="card" style="max-width:420px">{% csrf_token %}{{ form.non_field_errors }}
+{% for f in form %}<label>{{ f.label }}<br>{{ f }}</label>{{ f.errors }}{% endfor %}
+<p style="margin-top:18px"><button class="p">Log in</button></p></form>{% endblock %}

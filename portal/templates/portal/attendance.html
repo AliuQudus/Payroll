@@ -1,0 +1,11 @@
+{% extends "portal/base.html" %}{% block title %}Attendance{% endblock %}
+{% block content %}
+<div class="bar"><h1>Attendance: {{ first|date:"F Y" }}</h1><span>
+<a class="btn" href="?month={{ prev|date:'Y-m' }}">&larr; {{ prev|date:"M Y" }}</a>{% if next %} <a class="btn" href="?month={{ next|date:'Y-m' }}">{{ next|date:"M Y" }} &rarr;</a>{% endif %}</span></div>
+<div class="card"><table><tr><td class="mut">Present</td><td>{{ counts.PRESENT|default:0 }}</td></tr><tr><td class="mut">Late</td><td>{{ counts.LATE|default:0 }}</td></tr>
+<tr><td class="mut">Absent (unpaid)</td><td>{{ counts.ABSENT|default:0 }}</td></tr><tr><td class="mut">Half days absent (unpaid)</td><td>{{ counts.HALF_DAY|default:0 }}</td></tr>
+<tr><td class="mut">Approved overtime</td><td>{{ ot_hours|floatformat:"-2" }} hour(s){% if ot_amount %}, worth {{ ot_amount|floatformat:"2g" }}{% endif %}</td></tr></table>
+<p class="mut" style="margin-bottom:0">Days marked absent reduce your pay for the month. If something here looks wrong, ask HR before payroll is run.</p></div>
+<div class="card scroll"><table><thead><tr><th>Date</th><th>Status</th><th>In</th><th>Out</th><th>Note</th></tr></thead><tbody>
+{% for r in records %}<tr><td>{{ r.date|date:"D j M" }}</td><td>{{ r.get_status_display }}</td><td>{{ r.time_in|time:"H:i"|default:"" }}</td><td>{{ r.time_out|time:"H:i"|default:"" }}</td><td>{{ r.note }}</td></tr>
+{% empty %}<tr><td colspan="5" class="mut">Nothing has been recorded for you this month.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

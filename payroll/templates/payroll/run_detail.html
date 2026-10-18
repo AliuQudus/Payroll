@@ -1,0 +1,18 @@
+{% extends "payroll/base.html" %}{% block title %}Run {{ run.year }}-{{ run.month }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>Payroll run {{ run.year }}-{{ run.month|stringformat:"02d" }} <span class="tag">{{ run.get_status_display }}</span></h1>
+<a href="{% url 'run_list' %}">All runs</a></div>
+<div class="card btns">
+{% for act, label in actions %}<form method="post" action="{% url 'run_action' run.pk act %}">{% csrf_token %}<button class="{% if act == 'delete' %}d{% elif act == 'approve' or act == 'submit' or act == 'pay' %}p{% endif %}">{{ label }}</button></form>{% endfor %}
+{% if slips %}<a class="btn" href="{% url 'run_csv' run.pk %}">Download bank schedule (CSV)</a>{% endif %}
+{% if final %}<a class="btn" href="{% url 'payslip_list' %}?run={{ run.pk }}">Open payslips</a>{% endif %}
+{% if run.approved_by %}<p class="mut">Approved by {{ run.approved_by.username }} on {{ run.approved_at|date:"j M Y, H:i" }}. Approved payroll is locked.</p>{% endif %}
+</div>
+{% if cannot_approve %}<p class="msg">This run is waiting for approval by {% if waiting_for %}{{ waiting_for|join:", " }}. Only they can approve it.{% else %}an approver, but every designated approver is deactivated. An administrator must choose an active one.{% endif %}</p>{% endif %}
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Employee</th><th class="n">Gross</th><th class="n">PAYE</th><th class="n">Net pay</th><th class="n">Employer cost</th><th></th></tr></thead><tbody>
+{% for s in slips %}<tr><td>{{ s.employee.employee_no }}</td><td>{{ s.employee.first_name }} {{ s.employee.last_name }}</td>
+<td class="n">{{ s.gross|floatformat:"2g" }}</td><td class="n">{{ s.paye|floatformat:"2g" }}</td><td class="n">{{ s.net_pay|floatformat:"2g" }}</td><td class="n">{{ s.employer_cost|floatformat:"2g" }}</td>
+<td>{% if not final %}<a href="{% url 'payslip' s.pk %}">Preview</a>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="7" class="mut">No payroll calculated yet. This company has {{ employee_count }} active employee(s). Use Generate payslips to calculate this month.</td></tr>{% endfor %}
+{% if slips %}<tr><td colspan="2"><strong>Totals</strong></td><td class="n">{{ totals.gross|floatformat:"2g" }}</td><td class="n">{{ totals.paye|floatformat:"2g" }}</td><td class="n"><strong>{{ totals.net|floatformat:"2g" }}</strong></td><td class="n">{{ totals.cost|floatformat:"2g" }}</td><td></td></tr>{% endif %}
+</tbody></table></div>{% endblock %}

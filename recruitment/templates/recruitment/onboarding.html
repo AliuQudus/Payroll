@@ -1,0 +1,14 @@
+{% extends "payroll/base.html" %}{% block title %}Onboarding: {{ ob.employee }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ ob.employee }} <span class="tag">{{ ob.get_status_display }}</span></h1><a href="{% url 'recruitment:onboarding' %}">All onboarding</a></div>
+<div class="card"><table><tr><td class="mut">Employee number</td><td>{{ ob.employee.employee_no }}</td></tr>
+<tr><td class="mut">Starts</td><td>{{ ob.start_date|date:"j M Y" }}</td></tr>
+<tr><td class="mut">Monthly gross</td><td>{{ ob.employee.gross_monthly|floatformat:"2g" }}</td></tr>
+{% if ob.status == "COMPLETE" %}<tr><td class="mut">Completed</td><td>{{ ob.completed_at|date:"j M Y" }}{% if ob.completed_by %} by {{ ob.completed_by }}{% endif %}</td></tr>{% endif %}</table>
+<p class="mut" style="margin-bottom:0">Pay starts from the start date: a part first month is paid for the days employed. Add bank details on the employee record in payroll setup.</p></div>
+<div class="card"><strong>Checklist</strong><table style="margin-top:8px"><tbody>
+{% for i in items %}<tr><td style="width:2em">{% if i.is_done %}&#10003;{% endif %}</td><td{% if i.is_done %} class="mut"{% endif %}>{{ i.name }}{% if i.is_done and i.done_at %} <span class="mut">({{ i.done_at|date:"j M" }}{% if i.done_by %}, {{ i.done_by }}{% endif %})</span>{% endif %}</td>
+<td class="act">{% if ob.status == "OPEN" %}<form method="post" action="{% url 'recruitment:item_toggle' i.pk %}" style="display:inline">{% csrf_token %}<button>{% if i.is_done %}Undo{% else %}Mark done{% endif %}</button></form>
+<form method="post" action="{% url 'recruitment:item_delete' i.pk %}" style="display:inline">{% csrf_token %}<button class="d" style="padding:2px 8px">Remove</button></form>{% endif %}</td></tr>{% endfor %}</tbody></table>
+{% if ob.status == "OPEN" %}<form method="post" action="{% url 'recruitment:item_add' ob.pk %}" style="display:flex;gap:8px;margin-top:8px">{% csrf_token %}{{ item_form.name }}<button>Add item</button></form>
+<form method="post" action="{% url 'recruitment:onboarding_complete' ob.pk %}" style="margin-top:12px">{% csrf_token %}<button class="p">Mark onboarding complete</button></form>{% endif %}</div>{% endblock %}

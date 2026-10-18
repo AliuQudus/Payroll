@@ -1,0 +1,7 @@
+{% extends "payroll/base.html" %}{% block title %}Import attendance{% endblock %}
+{% block content %}<h1>Import attendance</h1>
+<p class="mut">Load a CSV exported from a clock or spreadsheet. Columns: <code>employee_no</code>, <code>date</code> (YYYY-MM-DD or DD/MM/YYYY), <code>status</code> (present, late, absent or half_day), and optionally <code>time_in</code>, <code>time_out</code> (HH:MM) and <code>note</code>. Rows for a day that already has a record replace it. The import is all or nothing: if any row has a problem, none are saved and every problem is listed.</p>
+<form method="post" enctype="multipart/form-data" class="card">{% csrf_token %}
+{{ form.non_field_errors }}
+{% for f in form %}<label>{{ f.label }}{% if f.help_text %} <span class="help">{{ f.help_text }}</span>{% endif %}<br>{{ f }}</label>{{ f.errors }}{% endfor %}
+<p style="margin-top:18px"><button class="p">Import</button></p></form>{% endblock %}

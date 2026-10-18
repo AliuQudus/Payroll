@@ -1,0 +1,19 @@
+{% extends "payroll/base.html" %}{% block title %}Approvers{% endblock %}
+{% block content %}
+<div class="bar"><h1>Approvers for {{ current_company.name }}</h1></div>
+<p class="mut">Choose who may approve each kind of record. Once someone is designated, only the designated people can approve it, administrators included. With nobody designated, any user other than the person who prepared it can approve.</p>
+<div class="card">
+{% for label, names in summary %}<div><strong>{{ label }}:</strong> {% if names %}{{ names|join:", " }}{% else %}<span class="mut">nobody designated, so any other user can approve</span>{% endif %}</div>{% endfor %}
+</div>
+<form method="post" class="card">{% csrf_token %}<strong>Designate an approver</strong>
+{{ form.non_field_errors }}
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">
+<label style="margin:0">User<br>{{ form.user }}{{ form.user.errors }}</label>
+<label style="margin:0">Can approve<br>{{ form.scope }}{{ form.scope.errors }}</label>
+<button class="p">Add approver</button></div>
+<p class="mut" style="margin-bottom:0">Only users with access to this company can be chosen. Add users, and give them this company, under Users.</p></form>
+<div class="card scroll"><table><thead><tr><th>User</th><th>Can approve</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.user.get_full_name|default:r.user.username }} ({{ r.user.username }}){% if not r.user.is_active %} <span class="mut">deactivated</span>{% endif %}</td><td>{{ r.get_scope_display }}</td>
+<td><form method="post" action="{% url 'approver_delete' r.pk %}" style="margin:0">{% csrf_token %}<button class="d">Remove</button></form></td></tr>
+{% empty %}<tr><td colspan="3" class="mut">No approvers designated yet.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

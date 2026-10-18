@@ -1,0 +1,37 @@
+{% extends base_template %}{% block title %}Two-factor sign-in{% endblock %}
+{% block content %}
+<h1>Two-factor sign-in</h1>
+{% if state == "codes" %}
+<div class="card"><p><strong>Two-factor sign-in is on.</strong> Save these recovery codes now. They are shown only this once.</p>
+<p class="mut">If you lose your phone, each code lets you sign in one time. Keep them somewhere safe and separate from your password: print them or put them in a password manager.</p>
+<pre style="font-size:1.1em;line-height:1.8">{% for c in codes %}{{ c }}
+{% endfor %}</pre>
+<p><a class="btn p" href="{% url 'security:setup' %}">I have saved them</a></p></div>
+{% elif state == "on" %}
+<div class="card"><p><strong>Two-factor sign-in is on.</strong> You have {{ codes_left }} recovery code{{ codes_left|pluralize }} left.</p>
+{% if required %}<p class="mut">It is compulsory for administrators, so it cannot be switched off.</p>{% endif %}</div>
+<div class="card"><strong>Make new recovery codes</strong>
+<p class="mut">This makes 8 new codes and cancels all the old ones.</p>
+<form method="post" action="{% url 'security:regenerate' %}">{% csrf_token %}
+<label>Your password<br><input type="password" name="password" autocomplete="current-password" required></label>
+<label>Code from your app (or a recovery code)<br><input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>
+<p><button>Make new codes</button></p></form></div>
+{% if not required %}<div class="card"><strong>Switch two-factor off</strong>
+<form method="post" action="{% url 'security:disable' %}" onsubmit="return confirm('Switch off two-factor sign-in?')">{% csrf_token %}
+<label>Your password<br><input type="password" name="password" autocomplete="current-password" required></label>
+<label>Code from your app (or a recovery code)<br><input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>
+<p><button class="d">Switch off</button></p></form></div>{% endif %}
+{% else %}
+<p class="mut">Two-factor sign-in asks for a 6-digit code from an app on your phone as well as your password, so a stolen password alone is not enough to get in.</p>
+{% if required %}<div class="msg warning">Administrators must switch this on before using the system.</div>{% endif %}
+<div class="card"><p><strong>1.</strong> Install an authenticator app such as Google Authenticator, Microsoft Authenticator or Authy.</p>
+<p><strong>2.</strong> {% if qr %}Scan this code with the app:{% else %}In the app, add an account and enter this setup key:{% endif %}</p>
+{% if qr %}<div style="background:#fff;display:inline-block;padding:6px;line-height:0" aria-label="QR code for the authenticator app">{{ qr }}</div>
+<p class="mut">Cannot scan it? Enter this key in the app instead:</p>{% endif %}
+<p style="font-family:monospace;font-size:1.15em;letter-spacing:.05em">{{ key }}</p>
+<p><strong>3.</strong> Enter the 6-digit code the app now shows:</p>
+{% if error %}<div class="msg error">{{ error }}</div>{% endif %}
+<form method="post" autocomplete="off">{% csrf_token %}<label><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required style="max-width:10em"></label>
+<p style="margin-top:12px"><button class="p">Switch on</button></p></form></div>
+{% endif %}
+{% endblock %}

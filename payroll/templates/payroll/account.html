@@ -1,0 +1,16 @@
+{% extends base_template %}{% block title %}Your account{% endblock %}
+{% block content %}
+<h1>Your account</h1>
+<p class="mut">Signed in as <strong>{{ user.get_username }}</strong>.</p>
+<form method="post" class="card">{% csrf_token %}
+<strong>Appearance</strong>
+<p class="mut" style="margin:4px 0 0">Saved on your account, so it is the same on every device you sign in from. You can also switch quickly with the button at the top of any page.</p>
+{% for value, label in themes %}<label class="choice"><input type="radio" name="theme" value="{{ value }}"{% if current_theme == value %} checked{% endif %}>
+<span><strong>{{ label }}</strong>{% if value == "system" %}<span class="mut">Light or dark, following your device's setting.</span>{% elif value == "light" %}<span class="mut">Dark text on a light background.</span>{% else %}<span class="mut">Light text on a dark background, easier on the eyes at night.</span>{% endif %}</span></label>{% endfor %}
+<p style="margin-top:14px"><button class="p">Save appearance</button></p></form>
+{% if security_installed %}<div class="card"><strong>Two-factor sign-in</strong>
+<p style="margin:6px 0">{% if two_factor_on %}<span class="tag">On</span> A code from your authenticator app is asked for each time you sign in.{% else %}<span class="tag">Off</span> Add a code from an app on your phone to your password, so a stolen password alone is not enough.{% endif %}</p>
+{% if two_factor_required and not two_factor_on %}<div class="msg warning">Administrators must switch this on.</div>{% endif %}
+<p style="margin-bottom:0"><a class="btn{% if not two_factor_on %} p{% endif %}" href="{% url 'security:setup' %}">{% if two_factor_on %}Manage two-factor sign-in{% else %}Set up two-factor sign-in{% endif %}</a>
+{% if user.is_superuser %} <a class="btn" href="{% url 'security:users' %}">Everyone's two-factor status</a>{% endif %}</p></div>{% endif %}
+{% endblock %}

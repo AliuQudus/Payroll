@@ -1,0 +1,14 @@
+{% extends "payroll/base.html" %}{% block title %}Portal access{% endblock %}
+{% block content %}
+<div class="bar"><h1>Employee portal access</h1></div>
+<p class="mut">Give an employee a login to see their own payslips, check their leave and request time off. Their email address is their username, and they choose their own password from the emailed link. A portal login can see only that employee's own records.</p>
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Name</th><th>Email</th><th>Status</th><th>Last sign-in</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.emp.employee_no }}</td><td>{{ r.emp }}</td><td>{{ r.emp.email|default:"-" }}</td>
+<td><span class="tag">{{ r.label }}</span>{% if r.also_staff %}<br><span class="mut">Also has access to company screens</span>{% endif %}</td>
+<td>{{ r.last_login|date:"j M Y H:i"|default:"" }}</td>
+<td class="act">
+{% if r.status == "none" %}<form method="post" action="{% url 'portal:access_grant' r.emp.pk %}" style="display:inline">{% csrf_token %}<button class="p"{% if not r.emp.email %} disabled title="Add an email address to this employee first"{% endif %}>Give access</button></form>
+{% elif r.status == "revoked" %}<form method="post" action="{% url 'portal:access_invite' r.emp.pk %}" style="display:inline">{% csrf_token %}<button>Restore and invite</button></form>
+{% elif r.status == "invited" or r.status == "active" %}<form method="post" action="{% url 'portal:access_invite' r.emp.pk %}" style="display:inline">{% csrf_token %}<button>{% if r.status == "invited" %}Resend invitation{% else %}Send a new password link{% endif %}</button></form>
+<form method="post" action="{% url 'portal:access_revoke' r.emp.pk %}" style="display:inline" onsubmit="return confirm('Switch off this login? They will be signed out.')">{% csrf_token %}<button class="d">Switch off</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="6" class="mut">No employees.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

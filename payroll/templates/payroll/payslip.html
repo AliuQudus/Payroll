@@ -1,0 +1,8 @@
+{% extends "payroll/base.html" %}{% load humanize %}{% block title %}Payslip{% endblock %}
+{% block content %}
+<div class="bar noprint">{% if slip.run.status == "APPROVED" or slip.run.status == "PAID" %}<a href="{% url 'payslip_list' %}?run={{ slip.run.pk }}">Back to payslips</a>{% else %}<a href="{% url 'run_detail' slip.run.pk %}">Back to run</a>{% endif %}<button onclick="window.print()">Print or save as PDF</button></div>
+<div class="card"><h1>{{ current_company.name }}</h1>
+<p class="mut">Payslip for {{ slip.run.year }}-{{ slip.run.month|stringformat:"02d" }}<br>
+{{ slip.employee.employee_no }} · {{ slip.employee.first_name }} {{ slip.employee.last_name }}{% if slip.employee.department %} · {{ slip.employee.department }}{% endif %}</p>
+{% for label, lines in groups %}<h3>{{ label }}</h3><table>{% for l in lines %}<tr><td>{{ l.name }}</td><td class="n">{{ l.amount|intcomma }}</td></tr>{% endfor %}</table>{% endfor %}
+<p style="margin-top:18px">Net pay <span class="net">{{ slip.net_pay|intcomma }}</span></p></div>{% endblock %}

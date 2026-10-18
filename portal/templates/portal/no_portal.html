@@ -1,0 +1,4 @@
+{% extends "portal/base.html" %}{% block title %}No access{% endblock %}
+{% block content %}<h1>Employee portal</h1>
+<div class="card">{% if reason == "left" %}<p>Your portal access has ended because you are no longer an active employee.</p>
+{% else %}<p>This login is not linked to an employee, so there is nothing to show here. If you expected to see your payslips, ask your administrator to set up your portal access.</p>{% endif %}</div>{% endblock %}

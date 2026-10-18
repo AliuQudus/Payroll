@@ -1,0 +1,21 @@
+{% extends "payroll/base.html" %}{% block title %}Attendance register{% endblock %}
+{% block content %}
+<div class="bar"><h1>Attendance register</h1>
+<form method="get" style="display:flex;gap:8px;align-items:center"><a class="btn" href="?date={{ prev|date:'Y-m-d' }}">&larr;</a>
+<input type="date" name="date" value="{{ day|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" style="width:auto" aria-label="Date"><button>Go</button>
+{% if next %}<a class="btn" href="?date={{ next|date:'Y-m-d' }}">&rarr;</a>{% endif %}</form></div>
+<p><strong>{{ day|date:"l j F Y" }}</strong>{% if kind == "WEEKEND" %} <span class="tag">Weekend</span>{% elif kind == "HOLIDAY" %} <span class="tag">Public holiday</span>{% endif %}
+ <a class="btn" href="?date={{ day|date:'Y-m-d' }}&fill=present">Pre-fill blanks as present</a></p>
+<p class="mut">Mark who was absent, late or present. Leave a row blank if nothing needs noting. Days marked <em>Absent</em> reduce pay in the month's payroll, at the same daily rate as other absence. Pre-filling only fills the form; nothing is saved until you press Save.</p>
+{% if future %}<div class="msg warning">This day has not happened yet.</div>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Name</th><th>Status</th><th>In</th><th>Out</th><th>Note</th></tr></thead><tbody>
+{% for r in rows %}<tr{% if r.error %} style="background:var(--acbg)"{% endif %}><td>{{ r.emp.employee_no }}</td>
+<td>{{ r.emp }}{% if r.leave %} <span class="tag">On {{ r.leave.leave_type.name|lower }}</span>{% endif %}{% if r.error %}<br><span style="color:var(--er)">{{ r.error }}</span>{% endif %}</td>
+<td><select name="status_{{ r.emp.pk }}" aria-label="Status for {{ r.emp }}" style="width:auto"><option value="">-</option>
+{% for value, label in statuses %}<option value="{{ value }}"{% if r.v.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+<td><input type="time" name="in_{{ r.emp.pk }}" value="{{ r.v.time_in }}" style="width:auto" aria-label="Time in"></td>
+<td><input type="time" name="out_{{ r.emp.pk }}" value="{{ r.v.time_out }}" style="width:auto" aria-label="Time out"></td>
+<td><input name="note_{{ r.emp.pk }}" value="{{ r.v.note }}" maxlength="200" aria-label="Note"></td></tr>
+{% empty %}<tr><td colspan="6" class="mut">No active employees.</td></tr>{% endfor %}</tbody></table></div>
+{% if rows and not future %}<p><button class="p">Save register</button></p>{% endif %}</form>{% endblock %}

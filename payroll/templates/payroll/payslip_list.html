@@ -1,0 +1,22 @@
+{% extends "payroll/base.html" %}{% load humanize %}{% block title %}Payslips{% endblock %}
+{% block content %}
+<div class="bar"><h1>Payslips</h1></div>
+{% if not run %}<div class="card"><p class="mut" style="margin:0">No approved payroll runs yet. Payslips appear here once a payroll run is approved.</p></div>
+{% else %}
+<form method="get" class="card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">
+<label style="margin:0">Pay period<br><select name="run" onchange="this.form.submit()" style="width:auto">
+{% for r in runs %}<option value="{{ r.pk }}"{% if r == run %} selected{% endif %}>{{ r.year }}-{{ r.month|stringformat:"02d" }} ({{ r.get_status_display }})</option>{% endfor %}</select></label>
+<label style="margin:0">Find an employee<br><input name="q" value="{{ q }}" placeholder="Name or number"></label>
+<button>Search</button></form>
+<div class="card btns">
+<form method="post" action="{% url 'payslip_email' %}">{% csrf_token %}<input type="hidden" name="run" value="{{ run.pk }}"><input type="hidden" name="mode" value="unsent"><button class="p">Email unsent payslips</button></form>
+<form method="post" action="{% url 'payslip_email' %}">{% csrf_token %}<input type="hidden" name="run" value="{{ run.pk }}"><input type="hidden" name="mode" value="all"><button>Resend to everyone</button></form>
+<p class="mut" style="margin:6px 0 0">Employees with no email address are skipped. Set up the sender in Setup, then Company settings.</p></div>
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Employee</th><th class="n">Gross</th><th class="n">PAYE</th><th class="n">Net pay</th><th>Emailed</th><th></th></tr></thead><tbody>
+{% for s in slips %}<tr><td>{{ s.employee.employee_no }}</td><td>{{ s.employee.first_name }} {{ s.employee.last_name }}</td>
+<td class="n">{{ s.gross|floatformat:"2g" }}</td><td class="n">{{ s.paye|floatformat:"2g" }}</td><td class="n">{{ s.net_pay|floatformat:"2g" }}</td>
+<td>{% if s.emailed_at %}{{ s.emailed_at|date:"j M, H:i" }}{% elif s.employee.email %}Not sent{% else %}No email address{% endif %}</td>
+<td class="act"><a href="{% url 'payslip' s.pk %}">View</a>
+{% if s.employee.email %}<form method="post" action="{% url 'payslip_email' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="run" value="{{ run.pk }}"><input type="hidden" name="mode" value="one"><input type="hidden" name="payslip" value="{{ s.pk }}"><button style="padding:2px 10px">Email</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="7" class="mut">No payslips match.</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}{% endblock %}

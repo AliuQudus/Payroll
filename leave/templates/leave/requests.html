@@ -1,0 +1,12 @@
+{% extends "payroll/base.html" %}{% block title %}Leave requests{% endblock %}
+{% block content %}
+<div class="bar"><h1>Leave requests</h1><a class="btn p" href="{% url 'leave:new' %}">New leave request</a></div>
+<div class="card"><strong>On leave today</strong>
+{% for r in on_leave %}<div>{{ r.employee }} &middot; {{ r.leave_type }} until {{ r.end_date|date:"j M Y" }}</div>{% empty %}<div class="mut">Nobody.</div>{% endfor %}
+<p style="margin:14px 0 4px"><strong>Starting in the next 30 days</strong></p>
+{% for r in upcoming %}<div>{{ r.employee }} &middot; {{ r.leave_type }} from {{ r.start_date|date:"j M Y" }} ({{ r.days|floatformat:"-1" }} day(s))</div>{% empty %}<div class="mut">Nobody.</div>{% endfor %}</div>
+<p>{% for key, label in filters %}<a class="btn{% if key == status %} p{% endif %}" href="?status={{ key }}">{{ label }}</a> {% endfor %}</p>
+<div class="card scroll"><table><thead><tr><th>Employee</th><th>Leave type</th><th>From</th><th>To</th><th class="n">Days</th><th>Status</th><th>Leave allowance</th><th></th></tr></thead><tbody>
+{% for r in requests %}<tr><td>{{ r.employee }}</td><td>{{ r.leave_type }}</td><td>{{ r.start_date|date:"j M Y" }}</td><td>{{ r.end_date|date:"j M Y" }}</td><td class="n">{{ r.days|floatformat:"-1" }}</td><td><span class="tag">{{ r.phase }}</span></td><td>{{ r.allowance }}</td><td><a href="{% url 'leave:detail' r.pk %}">{% if r.is_locked %}View{% else %}Open{% endif %}</a></td></tr>
+{% empty %}<tr><td colspan="8" class="mut">No requests here.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

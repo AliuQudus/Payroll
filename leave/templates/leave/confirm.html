@@ -1,0 +1,3 @@
+{% extends "payroll/base.html" %}{% block content %}<h1>Delete this record?</h1>
+<form method="post" class="card">{% csrf_token %}<p>{{ obj }}</p>
+<button class="d">Delete</button> <a class="btn" href="{% url 'leave:section_list' back %}">Cancel</a></form>{% endblock %}

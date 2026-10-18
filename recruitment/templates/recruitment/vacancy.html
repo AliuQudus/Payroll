@@ -1,0 +1,17 @@
+{% extends "payroll/base.html" %}{% block title %}{{ vacancy.title }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ vacancy.title }} <span class="tag">{{ vacancy.get_status_display }}</span></h1><a href="{% url 'recruitment:vacancies' %}">All vacancies</a></div>
+<div class="card"><table>
+<tr><td class="mut">Department</td><td>{{ vacancy.department|default:"-" }}</td></tr>
+<tr><td class="mut">Type</td><td>{{ vacancy.get_employment_type_display }}</td></tr>
+<tr><td class="mut">Positions</td><td>{{ hired }} of {{ vacancy.headcount }} filled</td></tr>
+<tr><td class="mut">Opened</td><td>{{ vacancy.opened_on|date:"j M Y" }}{% if vacancy.closing_date %}, closes {{ vacancy.closing_date|date:"j M Y" }}{% endif %}</td></tr>
+{% if vacancy.description %}<tr><td class="mut">Description</td><td>{{ vacancy.description|linebreaksbr }}</td></tr>{% endif %}</table>
+<p class="btns" style="margin-bottom:0"><a class="btn" href="{% url 'recruitment:vacancy_edit' vacancy.pk %}">Edit</a>
+{% if vacancy.status == "OPEN" %}<a class="btn p" href="{% url 'recruitment:applicant_new' vacancy.pk %}">Add applicant</a>
+<form method="post" action="{% url 'recruitment:vacancy_status' vacancy.pk 'ON_HOLD' %}" style="display:inline">{% csrf_token %}<button>Put on hold</button></form>
+<form method="post" action="{% url 'recruitment:vacancy_status' vacancy.pk 'CLOSED' %}" style="display:inline" onsubmit="return confirm('Close this vacancy?')">{% csrf_token %}<button class="d">Close</button></form>
+{% else %}<form method="post" action="{% url 'recruitment:vacancy_status' vacancy.pk 'OPEN' %}" style="display:inline">{% csrf_token %}<button class="p">Reopen</button></form>{% endif %}</p></div>
+{% for stage, label, members in groups %}{% if members or stage == "APPLIED" %}<div class="card scroll"><strong>{{ label }}</strong> <span class="mut">({{ members|length }})</span>
+<table style="margin-top:8px"><tbody>{% for a in members %}<tr><td><a href="{% url 'recruitment:applicant' a.pk %}">{{ a }}</a></td><td>{{ a.get_source_display }}</td><td class="mut">Applied {{ a.applied_on|date:"j M Y" }}</td></tr>
+{% empty %}<tr><td class="mut">Nobody yet.</td></tr>{% endfor %}</tbody></table></div>{% endif %}{% endfor %}{% endblock %}

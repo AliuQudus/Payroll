@@ -1,0 +1,6 @@
+{% extends "portal/base.html" %}{% block title %}Payslips{% endblock %}
+{% block content %}<h1>Your payslips</h1>
+<div class="card scroll"><table><thead><tr><th>Month</th><th class="n">Net pay</th><th></th></tr></thead><tbody>
+{% for s in slips %}<tr><td>{{ s.run.year }}-{{ s.run.month|stringformat:"02d" }}</td><td class="n">{{ s.net_pay|floatformat:"2g" }}</td><td class="act"><a href="{% url 'portal:payslip' s.pk %}">View</a></td></tr>
+{% empty %}<tr><td colspan="3" class="mut">No payslips yet.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

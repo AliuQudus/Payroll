@@ -1,0 +1,14 @@
+{% extends "payroll/base.html" %}{% block title %}Attendance summary{% endblock %}
+{% block content %}
+<div class="bar"><h1>Attendance summary: {{ first|date:"F Y" }}</h1><span>
+<a class="btn" href="?month={{ prev|date:'Y-m' }}">&larr; {{ prev|date:"M Y" }}</a>
+{% if next %}<a class="btn" href="?month={{ next|date:'Y-m' }}">{{ next|date:"M Y" }} &rarr;</a>{% endif %}
+<a class="btn" href="{% url 'attendance:summary_csv' %}?month={{ month_param }}">Download CSV</a></span></div>
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Name</th><th class="n">Present</th><th class="n">Late</th><th class="n">Absent</th><th class="n">Half days</th><th class="n">Leave days</th><th class="n">Overtime hours</th><th class="n">Overtime pay</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.emp.employee_no }}</td><td>{{ r.emp }}</td><td class="n">{{ r.present }}</td><td class="n">{{ r.late }}</td>
+<td class="n">{% if r.absent %}<strong>{{ r.absent }}</strong>{% else %}0{% endif %}</td><td class="n">{{ r.half }}</td><td class="n">{{ r.leave_days }}</td>
+<td class="n">{{ r.ot_hours|floatformat:"-2" }}</td><td class="n">{{ r.ot_amount|floatformat:"2g" }}</td></tr>
+{% empty %}<tr><td colspan="9" class="mut">No active employees.</td></tr>{% endfor %}
+{% if rows %}<tr><td colspan="7"><strong>Total approved overtime</strong></td><td class="n"><strong>{{ ot_hours|floatformat:"-2" }}</strong></td><td class="n"><strong>{{ ot_amount|floatformat:"2g" }}</strong></td></tr>{% endif %}
+</tbody></table></div>
+<p class="mut">Absent days reduce pay in this month's payroll. Overtime is paid in the next run generated after it is approved.</p>{% endblock %}

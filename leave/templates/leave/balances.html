@@ -1,0 +1,10 @@
+{% extends "payroll/base.html" %}{% block title %}Leave balances{% endblock %}
+{% block content %}
+<div class="bar"><h1>Leave balances {{ year }}</h1>
+<form method="get" style="display:flex;gap:8px;align-items:center"><input type="number" name="year" value="{{ year }}" style="width:100px"><button>Show</button></form></div>
+<p class="mut">Days left of the yearly entitlement. Approved and pending requests both count. Entitlements can be changed per employee under Entitlements.</p>
+<div class="card scroll"><table><thead><tr><th>Employee</th>{% for t in types %}<th>{{ t.name }}</th>{% endfor %}</tr></thead><tbody>
+{% for emp, cells in rows %}<tr><td>{{ emp }}</td>{% for c in cells %}<td>
+{% if c.entitled is None %}<span class="mut">No limit</span><br>{{ c.taken|floatformat:"-1" }} taken{% else %}<strong>{{ c.remaining|floatformat:"-1" }}</strong> left of {{ c.entitled|floatformat:"-1" }}<br><span class="mut">{{ c.taken|floatformat:"-1" }} taken{% if c.pending %}, {{ c.pending|floatformat:"-1" }} pending{% endif %}</span>{% endif %}</td>{% endfor %}</tr>
+{% empty %}<tr><td class="mut">No active employees.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

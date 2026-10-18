@@ -1,0 +1,10 @@
+{% extends "payroll/base.html" %}{% block title %}Pay grades{% endblock %}
+{% block content %}
+<div class="bar"><h1>Pay grades</h1><a class="btn p" href="{% url 'salary:grade_new' %}">Add grade</a></div>
+<p class="mut">A grade is a salary band. A salary outside its grade's band is flagged, but never blocked.</p>
+<div class="card scroll"><table><thead><tr><th>Grade</th><th class="n">Lowest</th><th class="n">Highest</th><th></th></tr></thead><tbody>
+{% for g in grades %}<tr><td>{{ g.name }}</td><td class="n">{{ g.min_gross|floatformat:"2g" }}</td><td class="n">{{ g.max_gross|floatformat:"2g" }}</td>
+<td class="act"><a href="{% url 'salary:grade_edit' g.pk %}">Edit</a>
+<form method="post" action="{% url 'salary:grade_delete' g.pk %}" style="display:inline" onsubmit="return confirm('Delete this grade?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="4" class="mut">No grades yet.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

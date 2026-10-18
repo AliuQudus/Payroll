@@ -1,0 +1,19 @@
+{% extends "payroll/base.html" %}{% block title %}Salary: {{ emp }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ emp }} <span class="mut" style="font-size:16px">{{ emp.employee_no }}</span></h1><span><a href="{% url 'salary:overview' %}">All salaries</a> · {% if user.is_superuser and audit_installed %}<a href="{% url 'audit:log' %}?employee={{ emp.pk }}">Audit trail</a>{% endif %}</span></div>
+<div class="card"><table>
+<tr><td class="mut">Monthly gross now</td><td class="n"><span class="net">₦{{ gross|floatformat:"2g" }}</span></td></tr>
+{% if current.grade %}<tr><td class="mut">Grade</td><td class="n">{{ current.grade }} ({{ current.grade.min_gross|floatformat:"2g" }} to {{ current.grade.max_gross|floatformat:"2g" }})</td></tr>{% endif %}
+</table>
+<p class="btns" style="margin-bottom:0"><a class="btn p" href="{% url 'salary:revision_new' emp.pk %}">New salary change</a></p></div>
+{% if warning %}<div class="msg warning">{{ warning }}</div>{% endif %}
+{% if owed %}<div class="msg">Back pay of ₦{{ owed|floatformat:"2g" }} will be added to the {{ next_month|date:"F Y" }} payroll.</div>{% endif %}
+{% if overpaid %}<div class="msg warning">This employee was overpaid by ₦{{ overpaid|floatformat:"2g" }} in earlier months. It is not recovered automatically.</div>{% endif %}
+<div class="card scroll"><strong>History</strong>
+<table style="margin-top:8px"><thead><tr><th>From</th><th class="n">Monthly gross</th><th class="n">Change</th><th>Reason</th><th>Grade</th><th>Note</th><th>By</th><th></th></tr></thead><tbody>
+{% for h in history %}<tr><td>{{ h.rev.effective_from|date:"M Y" }}</td><td class="n">{{ h.rev.gross_monthly|floatformat:"2g" }}</td>
+<td class="n">{% if h.change is not None %}{% if h.change > 0 %}+{% endif %}{{ h.change|floatformat:"2g" }} ({{ h.pct|floatformat:1 }}%){% endif %}</td>
+<td>{{ h.rev.get_reason_display }}</td><td>{{ h.rev.grade|default:"" }}</td><td>{{ h.rev.note }}</td><td>{{ h.rev.created_by|default:"" }}</td>
+<td>{% if h.locked %}<span class="mut" title="This month has been approved">Locked</span>{% elif h.deletable %}<form method="post" action="{% url 'salary:revision_delete' h.rev.pk %}" style="display:inline" onsubmit="return confirm('Delete this salary change?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="8" class="mut">No history yet. The salary on file is used until you record a change.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

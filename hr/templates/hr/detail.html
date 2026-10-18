@@ -1,0 +1,47 @@
+{% extends "payroll/base.html" %}{% block title %}{{ emp }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ emp }} <span class="mut" style="font-size:16px">{{ emp.employee_no }}</span>{% if not emp.is_active %} <span class="tag">Inactive</span>{% endif %}</h1>
+<span><a href="{% url 'hr:directory' %}">HR directory</a> · {% if user.is_superuser and audit_installed %}<a href="{% url 'audit:log' %}?employee={{ emp.pk }}">Audit trail</a>{% endif %}</span></div>
+
+{% if profile %}
+<div class="card"><div class="bar"><strong>Employment</strong><a class="btn" href="{% url 'hr:profile_edit' emp.pk %}">Edit record</a></div><table>
+<tr><td class="mut">Job title</td><td>{{ profile.job_title }}</td></tr>
+<tr><td class="mut">Department</td><td>{{ emp.department|default:"-" }}</td></tr>
+<tr><td class="mut">Employment type</td><td>{{ profile.get_employment_type_display }}</td></tr>
+<tr><td class="mut">Hired</td><td>{{ profile.hire_date|date:"j M Y" }} ({{ service }})</td></tr>
+{% if profile.probation_end_date %}<tr><td class="mut">Probation ends</td><td>{{ profile.probation_end_date|date:"j M Y" }}</td></tr>{% endif %}
+{% if profile.contract_end_date %}<tr><td class="mut">Contract ends</td><td>{{ profile.contract_end_date|date:"j M Y" }}</td></tr>{% endif %}
+<tr><td class="mut">Reports to</td><td>{% if profile.manager %}<a href="{% url 'hr:detail' profile.manager.pk %}">{{ profile.manager }}</a>{% else %}-{% endif %}</td></tr>
+<tr><td class="mut">Direct reports</td><td>{% for r in reports %}<a href="{% url 'hr:detail' r.pk %}">{{ r }}</a>{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</td></tr>
+</table></div>
+<div class="card"><strong>Personal and statutory details</strong><table style="margin-top:8px">
+<tr><td class="mut">Date of birth</td><td>{{ profile.date_of_birth|date:"j M Y"|default:"-" }}</td></tr>
+<tr><td class="mut">Gender</td><td>{{ profile.get_gender_display|default:"-" }}</td></tr>
+<tr><td class="mut">Marital status</td><td>{{ profile.get_marital_status_display|default:"-" }}</td></tr>
+<tr><td class="mut">Phone</td><td>{{ profile.phone|default:"-" }}</td></tr>
+<tr><td class="mut">Address</td><td>{{ profile.address|default:"-" }}</td></tr>
+<tr><td class="mut">Tax identification number</td><td>{{ profile.tax_id|default:"-" }}</td></tr>
+<tr><td class="mut">Pension RSA PIN</td><td>{{ profile.rsa_pin|default:"-" }}</td></tr>
+<tr><td class="mut">Pension fund administrator</td><td>{{ profile.pension_administrator|default:"-" }}</td></tr>
+</table></div>
+{% else %}
+<div class="card"><p>This employee has no HR record yet.</p><a class="btn p" href="{% url 'hr:profile_edit' emp.pk %}">Create HR record</a></div>
+{% endif %}
+
+<div class="card"><div class="bar"><strong>Emergency contacts</strong><a class="btn" href="{% url 'hr:contact_new' emp.pk %}">Add contact</a></div>
+<table><thead><tr><th>Name</th><th>Relationship</th><th>Phone</th><th>Address</th><th></th></tr></thead><tbody>
+{% for c in contacts %}<tr><td>{{ c.name }}{% if c.is_next_of_kin %} <span class="tag">Next of kin</span>{% endif %}</td><td>{{ c.relationship }}</td><td>{{ c.phone }}</td><td>{{ c.address }}</td>
+<td class="act"><a href="{% url 'hr:contact_edit' c.pk %}">Edit</a>
+<form method="post" action="{% url 'hr:contact_delete' c.pk %}" style="display:inline" onsubmit="return confirm('Remove this contact?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="5" class="mut">No contacts yet.</td></tr>{% endfor %}
+</tbody></table></div>
+
+<div class="card"><div class="bar"><strong>Documents</strong><a class="btn" href="{% url 'hr:document_new' emp.pk %}">Upload document</a></div>
+<table><thead><tr><th>Title</th><th>Type</th><th>Issued</th><th>Expires</th><th>Uploaded</th><th></th></tr></thead><tbody>
+{% for d in documents %}<tr><td>{{ d.title }}</td><td>{{ d.get_kind_display }}</td><td>{{ d.issue_date|date:"j M Y"|default:"" }}</td>
+<td>{% if d.expiry_date %}{% if d.is_expired %}<span style="color:var(--er)">{{ d.expiry_date|date:"j M Y" }} (expired)</span>{% else %}{{ d.expiry_date|date:"j M Y" }}{% endif %}{% endif %}</td>
+<td>{{ d.uploaded_at|date:"j M Y" }}</td>
+<td class="act"><a href="{% url 'hr:document_download' d.pk %}">Download</a>
+<form method="post" action="{% url 'hr:document_delete' d.pk %}" style="display:inline" onsubmit="return confirm('Delete this document permanently?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="6" class="mut">No documents yet.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

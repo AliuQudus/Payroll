@@ -1,0 +1,9 @@
+{% extends "payroll/base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block content %}<h1>{{ title }}</h1>
+<form method="post" class="card">{% csrf_token %}
+{{ form.non_field_errors }}
+{% for f in form %}<label>{{ f.label }}{% if f.help_text %} <span class="help">{{ f.help_text }}</span>{% endif %}<br>{{ f }}</label>{{ f.errors }}{% endfor %}
+<p style="margin-top:18px"><button class="p">Save</button> <a class="btn" href="{% if back_url %}{{ back_url }}{% else %}{% url 'section_list' back %}{% endif %}">Cancel</a></p></form>
+{% if test_email %}<form method="post" action="{% url 'company_test_email' %}" class="card">{% csrf_token %}
+<p class="mut" style="margin-top:0">Save your settings first, then send a test message to {{ current_company.email|default:"the sender email" }} to check they work.</p>
+<button>Send test email</button></form>{% endif %}{% endblock %}

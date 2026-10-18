@@ -1,0 +1,5 @@
+{% extends "payroll/base.html" %}{% load static %}{% block title %}Calculator{% endblock %}
+{% block content %}
+<p class="mut">A scratch calculator for testing salary formulas. It does not read or change your saved data.</p>
+<iframe src="{% static 'payroll/calculator.html' %}" title="Payroll calculator" style="width:100%;height:calc(100vh - 190px);min-height:760px;border:1px solid var(--bd);border-radius:10px;background:var(--card)"></iframe>
+{% endblock %}

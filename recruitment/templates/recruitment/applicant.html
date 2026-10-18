@@ -1,0 +1,41 @@
+{% extends "payroll/base.html" %}{% block title %}{{ a }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ a }} <span class="tag">{{ a.get_stage_display }}</span></h1><a href="{% url 'recruitment:vacancy' a.vacancy.pk %}">{{ a.vacancy.title }}</a></div>
+<div class="card"><table>
+<tr><td class="mut">Email</td><td>{{ a.email|default:"-" }}</td></tr><tr><td class="mut">Phone</td><td>{{ a.phone|default:"-" }}</td></tr>
+<tr><td class="mut">Source</td><td>{{ a.get_source_display }}</td></tr><tr><td class="mut">Applied</td><td>{{ a.applied_on|date:"j M Y" }}</td></tr>
+{% if a.notes %}<tr><td class="mut">Notes</td><td>{{ a.notes|linebreaksbr }}</td></tr>{% endif %}
+{% if a.rejection_reason %}<tr><td class="mut">Reason for rejection</td><td>{{ a.rejection_reason }}</td></tr>{% endif %}
+<tr><td class="mut">CV</td><td>{% if a.cv %}<a href="{% url 'recruitment:cv' a.pk %}">Download {{ a.cv_name|default:"CV" }}</a>
+<form method="post" action="{% url 'recruitment:cv_delete' a.pk %}" style="display:inline" onsubmit="return confirm('Delete this CV permanently?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form>{% else %}-{% endif %}</td></tr></table>
+<p class="btns" style="margin-bottom:0"><a class="btn" href="{% url 'recruitment:applicant_edit' a.pk %}">Edit details</a></p></div>
+
+{% if open %}<div class="card"><strong>Next step</strong><p class="btns" style="margin:8px 0 0">
+{% if can_screen %}<form method="post" action="{% url 'recruitment:applicant_move' a.pk 'SCREENING' %}" style="display:inline">{% csrf_token %}<button>Move to screening</button></form>{% endif %}
+{% if can_interview %}<form method="post" action="{% url 'recruitment:applicant_move' a.pk 'INTERVIEW' %}" style="display:inline">{% csrf_token %}<button>Move to interview</button></form>{% endif %}
+{% if can_offer %}<a class="btn p" href="{% url 'recruitment:offer' a.pk %}">{% if offer and a.stage == "OFFER" %}Edit offer{% else %}Make an offer{% endif %}</a>{% endif %}</p>
+<form method="post" action="{% url 'recruitment:applicant_reject' a.pk %}" style="display:flex;gap:8px;margin-top:12px">{% csrf_token %}<input name="reason" placeholder="Reason for rejecting" maxlength="300" aria-label="Reason"><button class="d">Reject</button></form>
+<form method="post" action="{% url 'recruitment:applicant_withdraw' a.pk %}" style="margin-top:8px">{% csrf_token %}<button>Applicant withdrew</button></form></div>{% endif %}
+{% if a.stage == "REJECTED" or a.stage == "WITHDRAWN" %}<div class="card"><form method="post" action="{% url 'recruitment:applicant_reopen' a.pk %}">{% csrf_token %}<button>Reconsider this applicant</button></form></div>{% endif %}
+
+{% if offer %}<div class="card"><strong>Offer</strong> <span class="tag">{{ offer.get_status_display }}</span><table style="margin-top:8px">
+<tr><td class="mut">Job title</td><td>{{ offer.job_title }} ({{ offer.get_employment_type_display }})</td></tr>
+<tr><td class="mut">Monthly gross</td><td>{{ offer.gross_monthly|floatformat:"2g" }}</td></tr>
+<tr><td class="mut">Start date</td><td>{{ offer.start_date|date:"j M Y" }}</td></tr>
+<tr><td class="mut">Probation</td><td>{% if offer.probation_months %}{{ offer.probation_months }} month{{ offer.probation_months|pluralize }}{% else %}None{% endif %}</td></tr></table>
+{% if offer.status == "PENDING" and a.stage == "OFFER" %}<p class="btns" style="margin-bottom:0">
+<form method="post" action="{% url 'recruitment:offer_decide' a.pk 'accept' %}" style="display:inline">{% csrf_token %}<button class="p">They accepted</button></form>
+<form method="post" action="{% url 'recruitment:offer_decide' a.pk 'decline' %}" style="display:inline" onsubmit="return confirm('Record that they declined?')">{% csrf_token %}<button class="d">They declined</button></form>
+<form method="post" action="{% url 'recruitment:offer_decide' a.pk 'withdraw' %}" style="display:inline">{% csrf_token %}<button>Withdraw the offer</button></form></p>{% endif %}
+{% if ready_to_hire %}<p class="btns" style="margin-bottom:0"><a class="btn p" href="{% url 'recruitment:hire' a.pk %}">Hire {{ a.first_name }}</a></p>{% endif %}
+{% if a.employee_id %}<p class="mut" style="margin-bottom:0">Hired as employee {{ a.employee.employee_no }}.</p>{% endif %}</div>{% endif %}
+
+<div class="card scroll"><div class="bar"><strong>Interviews</strong>{% if open %}<a class="btn" href="{% url 'recruitment:interview_new' a.pk %}">Add interview</a>{% endif %}</div>
+<table><thead><tr><th>When</th><th>Interviewer</th><th>Rating</th><th>Feedback</th><th></th></tr></thead><tbody>
+{% for i in interviews %}<tr><td>{{ i.when|date:"j M Y H:i" }}</td><td>{{ i.interviewer }}</td><td>{{ i.rating|default_if_none:"-" }}</td><td>{{ i.feedback|linebreaksbr }}</td>
+<td class="act"><a href="{% url 'recruitment:interview_edit' i.pk %}">Edit</a>
+<form method="post" action="{% url 'recruitment:interview_delete' i.pk %}" style="display:inline" onsubmit="return confirm('Remove this interview?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="5" class="mut">No interviews yet.</td></tr>{% endfor %}</tbody></table></div>
+
+<div class="card"><strong>History</strong><table style="margin-top:8px"><tbody>
+{% for e in events %}<tr><td class="mut" style="white-space:nowrap">{{ e.at|date:"j M Y H:i" }}</td><td><span class="tag">{{ e.get_stage_display }}</span></td><td>{{ e.note }}</td><td class="mut">{{ e.by|default:"" }}</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

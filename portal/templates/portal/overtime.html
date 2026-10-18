@@ -1,0 +1,10 @@
+{% extends "portal/base.html" %}{% block title %}Overtime{% endblock %}
+{% block content %}
+<div class="bar"><h1>Overtime</h1><a class="btn p" href="{% url 'portal:overtime_new' %}">Request overtime</a></div>
+<p class="mut">Overtime you request is approved by your manager or HR. Once approved it is paid in the next payroll run.</p>
+<div class="card scroll"><table><thead><tr><th>Day worked</th><th class="n">Hours</th><th>Day</th><th class="n">Amount</th><th>Status</th><th></th></tr></thead><tbody>
+{% for r in requests %}<tr><td>{{ r.date|date:"D j M Y" }}{% if r.reason %}<br><span class="mut">{{ r.reason }}</span>{% endif %}</td><td class="n">{{ r.hours|floatformat:"-2" }}</td><td>{{ r.get_day_type_display }}</td>
+<td class="n">{% if r.amount %}{{ r.amount|floatformat:"2g" }}{% endif %}</td>
+<td><span class="tag">{{ r.get_status_display }}</span>{% if r.pk in paid %} <span class="tag">Paid</span>{% endif %}{% if r.decision_note %}<br><span class="mut">{{ r.decision_note }}</span>{% endif %}</td>
+<td>{% if r.status == "PENDING" %}<form method="post" action="{% url 'portal:overtime_cancel' r.pk %}" style="display:inline" onsubmit="return confirm('Withdraw this request?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Withdraw</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="6" class="mut">You have not requested any overtime.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

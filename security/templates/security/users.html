@@ -1,0 +1,10 @@
+{% extends base_template %}{% block title %}Two-factor sign-in{% endblock %}
+{% block content %}
+<div class="bar"><h1>Two-factor sign-in</h1></div>
+<p class="mut">{% if required %}It is compulsory for administrators.{% else %}It is optional. Everyone can switch it on from their own account page.{% endif %} If someone loses their phone and their recovery codes, reset it here. They can then sign in with just their password and set it up again.</p>
+<div class="card scroll"><table><thead><tr><th>User</th><th>Role</th><th>Two-factor</th><th class="n">Recovery codes left</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.user.get_username }}</td><td>{{ r.role }}</td>
+<td><span class="tag">{% if r.state == "on" %}On{% elif r.state == "pending" %}Started, not finished{% else %}Off{% endif %}</span></td>
+<td class="n">{% if r.state == "on" %}{{ r.user.codes }}{% endif %}</td>
+<td class="act">{% if r.state != "off" and r.user != user %}<form method="post" action="{% url 'security:reset' r.user.pk %}" style="display:inline" onsubmit="return confirm('Reset two-factor sign-in for {{ r.user.get_username|escapejs }}?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Reset</button></form>{% endif %}</td></tr>
+{% endfor %}</tbody></table></div>{% endblock %}

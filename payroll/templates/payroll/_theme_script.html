@@ -1,0 +1,22 @@
+<script>
+/* Makes the light/dark button switch at once and saves the choice quietly. Without this script the button still works:
+   it is an ordinary form post that comes back to the same page. */
+(function(){
+ var btn=document.getElementById('theme-btn'); if(!btn||!window.matchMedia) return;
+ var root=document.documentElement, form=btn.form, dark=matchMedia('(prefers-color-scheme: dark)');
+ function shown(){var t=root.getAttribute('data-theme'); return (t==='light'||t==='dark')?t:(dark.matches?'dark':'light');}
+ function paint(){var next=shown()==='dark'?'light':'dark';
+  form.elements.theme.value=next;
+  btn.querySelector('.lbl').textContent=(next==='light'?'Light':'Dark')+' mode';
+  btn.querySelector('.ico').innerHTML=next==='light'?'&#9728;':'&#9790;';
+  btn.setAttribute('aria-label','Switch to '+next+' mode');}
+ paint();
+ if(dark.addEventListener) dark.addEventListener('change',paint);
+ form.addEventListener('submit',function(e){
+  e.preventDefault(); root.setAttribute('data-theme',form.elements.theme.value); paint();
+  fetch(form.action,{method:'POST',credentials:'same-origin',
+   headers:{'X-Requested-With':'fetch','X-CSRFToken':form.elements.csrfmiddlewaretoken.value},
+   body:new URLSearchParams({theme:root.getAttribute('data-theme')})}).catch(function(){});
+ });
+})();
+</script>

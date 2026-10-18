@@ -1,0 +1,24 @@
+{% extends "payroll/base.html" %}{% block title %}Audit log{% endblock %}
+{% block content %}
+<div class="bar"><h1>Audit log</h1><a class="btn" href="{% url 'audit:csv' %}?{{ querystring }}">Export CSV</a></div>
+<p class="mut">Every change to payroll, HR, salary, leave and remittance records, and sign-ins and downloads, with who did it. Entries cannot be edited or deleted here. Export is limited to the latest {{ export_limit }} matching entries.</p>
+<form method="get" class="card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+{{ form.employee }}
+<label>Search<br>{{ form.q }}</label><label>Who<br>{{ form.user }}</label><label>Area<br>{{ form.area }}</label><label>Action<br>{{ form.action }}</label>
+<label>From<br>{{ form.date_from }}</label><label>To<br>{{ form.date_to }}</label>
+<button>Filter</button> <a class="btn" href="{% url 'audit:log' %}">Clear</a></form>
+{% if form.errors %}<div class="msg error">Check the filters: {{ form.errors|striptags }}</div>{% endif %}
+<div class="card scroll"><table><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Item</th><th>What changed</th></tr></thead><tbody>
+{% for e in page %}<tr>
+<td style="white-space:nowrap">{{ e.created_at|date:"j M Y H:i" }}</td>
+<td>{{ e.who }}{% if e.ip_address %}<br><span class="mut">{{ e.ip_address }}</span>{% endif %}</td>
+<td><span class="tag"{% if e.action == "LOGIN_FAILED" or e.action == "DELETE" %} style="color:var(--er)"{% endif %}>{{ e.get_action_display }}</span></td>
+<td>{% if e.model_name %}<span class="mut">{{ e.model_name }}</span><br>{% endif %}{{ e.object_repr }}{% if e.subject and e.subject != e.object_repr %}<br><span class="mut">{{ e.subject }}</span>{% endif %}</td>
+<td>{% for field, pair in e.changes.items %}<div><strong>{{ field }}</strong>:
+{% if pair.0 is None %}{{ pair.1|truncatechars:80 }}{% elif pair.1 is None %}<s>{{ pair.0|truncatechars:80 }}</s>{% else %}{{ pair.0|default:"(empty)"|truncatechars:60 }} &rarr; {{ pair.1|default:"(empty)"|truncatechars:60 }}{% endif %}</div>{% endfor %}</td></tr>
+{% empty %}<tr><td colspan="5" class="mut">No entries match.</td></tr>{% endfor %}
+</tbody></table></div>
+{% if page.paginator.num_pages > 1 %}<p>Page {{ page.number }} of {{ page.paginator.num_pages }}
+{% if page.has_previous %} · <a href="?{{ querystring }}&page={{ page.previous_page_number }}">Newer</a>{% endif %}
+{% if page.has_next %} · <a href="?{{ querystring }}&page={{ page.next_page_number }}">Older</a>{% endif %}</p>{% endif %}
+{% endblock %}

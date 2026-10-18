@@ -1,0 +1,54 @@
+{% extends "payroll/base.html" %}{% block title %}Exit: {{ ex.employee }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ ex.employee }} <span class="tag">{{ ex.get_status_display }}</span></h1><a href="{% url 'exits:overview' %}">All exits</a></div>
+<div class="card"><table>
+<tr><td class="mut">Reason</td><td>{{ ex.get_reason_display }}</td></tr>
+{% if ex.notice_date %}<tr><td class="mut">Notice given</td><td>{{ ex.notice_date|date:"j M Y" }}</td></tr>{% endif %}
+<tr><td class="mut">Last working day</td><td>{{ ex.last_working_day|date:"j M Y" }}</td></tr>
+{% if ex.notes %}<tr><td class="mut">Notes</td><td>{{ ex.notes|linebreaksbr }}</td></tr>{% endif %}
+{% if ex.status == "COMPLETED" %}<tr><td class="mut">Completed</td><td>{{ ex.completed_at|date:"j M Y" }}{% if ex.completed_by %} by {{ ex.completed_by }}{% endif %}</td></tr>{% endif %}
+</table>
+{% if ex.status == "OPEN" and not locked %}<p class="btns" style="margin-bottom:0"><a class="btn" href="{% url 'exits:edit' ex.pk %}">Edit dates</a></p>{% endif %}</div>
+
+{% if run_needs_regenerating %}<div class="msg warning">The payroll run for {{ ex.last_working_day|date:"F Y" }} is {{ run.get_status_display|lower }}. Reopen it to draft and generate it again so the final pay is included.</div>{% endif %}
+{% if locked and ex.status == "OPEN" %}<div class="msg">The final month's payroll is approved, so the dates and settlement are now locked.</div>{% endif %}
+
+{% if ex.status == "OPEN" %}
+<div class="card scroll"><strong>Final payslip preview for {{ ex.last_working_day|date:"F Y" }}</strong>
+{% if preview.error %}<p class="msg error" style="margin-top:8px">{{ preview.error }}</p>
+{% else %}
+<p class="mut" style="margin:4px 0 8px">Worked out by payroll as if the run were generated now. Pay is for {{ preview.worked_days }} of {{ preview.days_in_month }} days; any outstanding loans and IOUs are recovered in full.</p>
+<table><thead><tr><th>Item</th><th class="n">Amount</th></tr></thead><tbody>
+{% for name, kind, amount in preview.lines %}{% if kind != "EMPLOYER" and kind != "INFO" %}<tr><td>{{ name }}{% if kind == "DEDUCTION" %} <span class="mut">(deduction)</span>{% endif %}</td><td class="n">{% if kind == "DEDUCTION" %}-{% endif %}{{ amount|floatformat:"2g" }}</td></tr>{% endif %}{% endfor %}
+<tr><td><strong>Net pay</strong></td><td class="n"><strong>{{ preview.net|floatformat:"2g" }}</strong></td></tr></tbody></table>
+{% if preview.prorata_cut %}<p class="mut" style="margin-bottom:0">Pay reduced by {{ preview.prorata_cut|floatformat:"2g" }} for the days after the last working day. PAYE is worked out on this month's pay as for any other month: it is not a year-to-date true-up.</p>{% endif %}
+{% if preview.owes %}<div class="msg warning" style="margin-top:8px">Deductions are more than the pay owed: the employee would owe {{ preview.net|cut:"-"|floatformat:"2g" }}. Review the settlement lines and loans.</div>{% endif %}
+{% endif %}</div>
+
+<div class="card scroll"><div class="bar"><strong>Settlement lines</strong><span>
+{% if not locked %}{% if payouts %}<form method="post" action="{% url 'exits:suggest' ex.pk %}" style="display:inline">{% csrf_token %}<button>Suggest leave payout</button></form> {% endif %}<a class="btn" href="{% url 'exits:line_new' ex.pk %}">Add line</a>{% endif %}</span></div>
+{% for lt, accrued, taken, days, amount in payouts %}<p class="mut" style="margin:0 0 6px">{{ lt.name }}: {{ accrued }} day(s) accrued this year, {{ taken }} taken, {{ days }} unused, worth {{ amount|floatformat:"2g" }} at the monthly gross divided by the absence-day rule.</p>{% endfor %}
+<table><thead><tr><th>Description</th><th>Type</th><th class="n">Amount</th><th>Taxable</th><th></th></tr></thead><tbody>
+{% for l in lines %}<tr><td>{{ l.description }}</td><td>{{ l.get_kind_display }}</td><td class="n">{{ l.amount|floatformat:"2g" }}</td><td>{% if l.kind == "EARNING" %}{{ l.taxable|yesno:"Yes,No" }}{% endif %}</td>
+<td class="act">{% if not locked %}<a href="{% url 'exits:line_edit' l.pk %}">Edit</a>
+<form method="post" action="{% url 'exits:line_delete' l.pk %}" style="display:inline" onsubmit="return confirm('Remove this line?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Remove</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5" class="mut">No lines. Unused leave, pay in lieu of notice and gratuity go here. Salary for the days worked and loan recovery are added automatically.</td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}
+<div class="card scroll"><strong>Settlement lines</strong><table style="margin-top:8px"><tbody>
+{% for l in lines %}<tr><td>{{ l.description }}</td><td>{{ l.get_kind_display }}</td><td class="n">{{ l.amount|floatformat:"2g" }}</td></tr>{% empty %}<tr><td class="mut">None.</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+
+<div class="card"><strong>Clearance</strong>
+<table style="margin-top:8px"><tbody>
+{% for i in items %}<tr><td style="width:2em">{% if i.is_done %}&#10003;{% endif %}</td><td{% if i.is_done %} class="mut"{% endif %}>{{ i.name }}{% if i.is_done and i.done_at %} <span class="mut">({{ i.done_at|date:"j M" }}{% if i.done_by %}, {{ i.done_by }}{% endif %})</span>{% endif %}</td>
+<td class="act">{% if ex.status == "OPEN" %}<form method="post" action="{% url 'exits:item_toggle' i.pk %}" style="display:inline">{% csrf_token %}<button>{% if i.is_done %}Undo{% else %}Mark done{% endif %}</button></form>
+<form method="post" action="{% url 'exits:item_delete' i.pk %}" style="display:inline">{% csrf_token %}<button class="d" style="padding:2px 8px">Remove</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table>
+{% if ex.status == "OPEN" %}<form method="post" action="{% url 'exits:item_add' ex.pk %}" style="display:flex;gap:8px;margin-top:8px">{% csrf_token %}{{ item_form.name }}<button>Add item</button></form>{% endif %}</div>
+
+{% if ex.status == "OPEN" %}<div class="card">
+{% if blockers %}<p><strong>Before this exit can be completed:</strong></p><ul>{% for b in blockers %}<li>{{ b }}</li>{% endfor %}</ul>{% else %}<p>Everything is in place. Completing the exit takes {{ ex.employee }} off payroll.</p>{% endif %}
+<form method="post" action="{% url 'exits:complete' ex.pk %}" style="display:inline" onsubmit="return confirm('Complete this exit? The employee will be marked inactive.')">{% csrf_token %}<button class="p"{% if blockers %} disabled{% endif %}>Complete exit</button></form>
+{% if not locked %}<form method="post" action="{% url 'exits:cancel' ex.pk %}" style="display:inline" onsubmit="return confirm('Cancel this exit? Pay will continue as normal.')">{% csrf_token %}<button class="d">Cancel exit</button></form>{% endif %}</div>{% endif %}
+{% endblock %}

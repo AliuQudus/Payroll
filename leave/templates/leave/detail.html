@@ -1,0 +1,30 @@
+{% extends "payroll/base.html" %}{% block title %}Leave request{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ req.employee }} <span class="tag">{{ req.phase }}</span></h1><a href="{% url 'leave:requests' %}?status=all">All leave requests</a></div>
+{% if req.is_locked %}<p class="msg">This request has been {{ req.get_status_display|lower }} and is locked. You can open it but not change it.</p>{% endif %}
+<div class="card"><table>
+<tr><td class="mut">Leave type</td><td>{{ req.leave_type }}{% if not req.leave_type.is_paid %} (unpaid){% endif %}</td></tr>
+<tr><td class="mut">Dates</td><td>{{ req.start_date|date:"l j M Y" }} to {{ req.end_date|date:"l j M Y" }}</td></tr>
+<tr><td class="mut">Days counted</td><td>{{ req.days|floatformat:"-1" }}{% if req.leave_type.working_days_only %} working day(s){% else %} calendar day(s){% endif %}</td></tr>
+<tr><td class="mut">Reason</td><td>{{ req.reason|default:"-" }}</td></tr>
+<tr><td class="mut">Relief officer</td><td>{{ req.relief_officer|default:"-" }}</td></tr>
+<tr><td class="mut">Requested by</td><td>{{ req.requested_by|default:"-" }} on {{ req.created_at|date:"j M Y" }}</td></tr>
+{% if req.decided_by %}<tr><td class="mut">Decided by</td><td>{{ req.decided_by }} on {{ req.decided_at|date:"j M Y, H:i" }}{% if req.decision_note %}. Note: {{ req.decision_note }}{% endif %}</td></tr>{% endif %}
+<tr><td class="mut">Leave allowance</td><td>{{ req.allowance }}</td></tr>
+</table></div>
+<div class="card"><strong>{{ req.leave_type }} balance, including this request</strong>
+<table style="margin-top:8px"><thead><tr><th>Year</th><th class="n">Entitled</th><th class="n">Taken</th><th class="n">Pending</th><th class="n">Remaining</th></tr></thead><tbody>
+{% for year, b in balances %}<tr><td>{{ year }}</td>
+<td class="n">{% if b.entitled is None %}No limit{% else %}{{ b.entitled|floatformat:"-1" }}{% endif %}</td>
+<td class="n">{{ b.taken|floatformat:"-1" }}</td><td class="n">{{ b.pending|floatformat:"-1" }}</td>
+<td class="n">{% if b.remaining is None %}-{% else %}{{ b.remaining|floatformat:"-1" }}{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% if req.status == "PENDING" and not can_decide %}<p class="msg">This request is waiting for approval by {% if waiting_for %}{{ waiting_for|join:", " }}. Only they can approve or reject it.{% else %}an approver, but every designated approver is deactivated. An administrator must choose an active one.{% endif %}</p>{% endif %}
+{% if req.status == "PENDING" or req.status == "APPROVED" %}{% if can_decide or req.status == "PENDING" %}
+<form method="post" class="card btns">{% csrf_token %}
+<label style="margin-top:0">Note (optional)<br><input name="note" maxlength="300"></label>
+<p style="margin-bottom:0">
+{% if req.status == "PENDING" and can_decide %}<button class="p" formaction="{% url 'leave:action' req.pk 'approve' %}">Approve</button>
+<button formaction="{% url 'leave:action' req.pk 'reject' %}">Reject</button>{% endif %}
+<button class="d" formaction="{% url 'leave:action' req.pk 'cancel' %}">Cancel this leave</button></p></form>{% endif %}{% endif %}
+{% endblock %}

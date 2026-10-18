@@ -1,0 +1,10 @@
+{% extends "payroll/base.html" %}{% block title %}User{% endblock %}
+{% block content %}<h1>{% if obj %}Edit user {{ obj.username }}{% else %}Add user{% endif %}</h1>
+<form method="post" class="card">{% csrf_token %}
+{{ form.non_field_errors }}
+{% for f in form %}{% if f.name == "companies" %}
+<fieldset style="border:0;padding:0;margin:12px 0 0"><legend style="font-weight:600">{{ f.label }}</legend>
+{% for c in f %}<label style="display:flex;gap:8px;align-items:center;font-weight:400;margin-top:4px">{{ c.tag }} {{ c.choice_label }}</label>{% empty %}<span class="mut">No companies yet.</span>{% endfor %}
+{{ f.errors }}</fieldset>
+{% else %}<label>{{ f.label }}{% if f.help_text %} <span class="help">{{ f.help_text }}</span>{% endif %}<br>{{ f }}</label>{{ f.errors }}{% endif %}{% endfor %}
+<p style="margin-top:18px"><button class="p">Save</button> <a class="btn" href="{% url 'user_list' %}">Cancel</a></p></form>{% endblock %}

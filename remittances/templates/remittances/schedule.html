@@ -1,0 +1,31 @@
+{% extends "payroll/base.html" %}{% block title %}{{ label }} {{ run.year }}-{{ run.month }}{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ label }}: {{ run.year }}-{{ run.month|stringformat:"02d" }} <span class="tag"{% if status == "Overdue" %} style="color:var(--er)"{% endif %}>{{ status }}</span></h1>
+<a href="{% url 'remittances:overview' %}">All remittances</a></div>
+<div class="card"><table>
+<tr><td class="mut">Amount due</td><td class="n">₦{{ due|floatformat:"2g" }}</td></tr>
+<tr><td class="mut">Paid so far</td><td class="n">₦{{ paid|floatformat:"2g" }}</td></tr>
+<tr><td class="mut">Still to pay</td><td class="n"><strong>₦{{ outstanding|floatformat:"2g" }}</strong></td></tr>
+<tr><td class="mut">Deadline</td><td class="n">{{ deadline|date:"j M Y" }}</td></tr></table>
+<p class="btns" style="margin-bottom:0"><a class="btn" href="{% url 'remittances:csv' run.pk slug %}">Download schedule (CSV)</a>
+{% if outstanding > 0 %} <a class="btn p" href="{% url 'remittances:payment_new' run.pk slug %}">Record a payment</a>{% endif %}</p></div>
+
+<div class="card scroll"><strong>Payments recorded</strong><table style="margin-top:8px"><thead><tr><th>Date</th><th>Paid to</th><th>Reference</th><th class="n">Amount</th><th>Note</th><th>Recorded by</th><th></th></tr></thead><tbody>
+{% for p in payments %}<tr><td>{{ p.paid_date|date:"j M Y" }}</td><td>{{ p.payee }}</td><td>{{ p.reference }}</td><td class="n">{{ p.amount|floatformat:"2g" }}</td><td>{{ p.note }}</td><td>{{ p.recorded_by|default:"" }}</td>
+<td><form method="post" action="{% url 'remittances:payment_delete' p.pk %}" style="display:inline" onsubmit="return confirm('Delete this payment record?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="7" class="mut">No payments recorded yet.</td></tr>{% endfor %}
+</tbody></table></div>
+
+{% if data.missing_ids %}<div class="msg warning">{{ data.missing_ids }} employee{{ data.missing_ids|pluralize }} {% if auth == "PAYE" %}ha{{ data.missing_ids|pluralize:"s,ve" }} no tax identification number{% else %}{{ data.missing_ids|pluralize:"is,are" }} missing an RSA PIN or pension administrator{% endif %} on file.{% if data.hr %} Add {{ data.missing_ids|pluralize:"it,them" }} in the HR directory.{% else %} Install the HR module to record these.{% endif %}</div>{% endif %}
+
+{% if auth == "PAYE" %}
+<div class="card scroll"><strong>PAYE schedule</strong><table style="margin-top:8px"><thead><tr><th>No.</th><th>Name</th><th>TIN</th><th class="n">Gross pay</th><th class="n">PAYE</th></tr></thead><tbody>
+{% for r in data.rows %}<tr><td>{{ r.employee.employee_no }}</td><td>{{ r.employee.first_name }} {{ r.employee.last_name }}</td><td>{{ r.tin|default:"-" }}</td><td class="n">{{ r.gross|floatformat:"2g" }}</td><td class="n">{{ r.paye|floatformat:"2g" }}</td></tr>{% endfor %}
+<tr><td colspan="4"><strong>Total</strong></td><td class="n"><strong>{{ data.total|floatformat:"2g" }}</strong></td></tr></tbody></table></div>
+{% else %}
+{% for g in data.groups %}<div class="card scroll"><strong>{{ g.pfa }}</strong><table style="margin-top:8px"><thead><tr><th>No.</th><th>Name</th><th>RSA PIN</th><th class="n">Employee</th><th class="n">Employer</th><th class="n">Total</th></tr></thead><tbody>
+{% for r in g.rows %}<tr><td>{{ r.employee.employee_no }}</td><td>{{ r.employee.first_name }} {{ r.employee.last_name }}</td><td>{{ r.rsa_pin|default:"-" }}</td><td class="n">{{ r.ee|floatformat:"2g" }}</td><td class="n">{{ r.er|floatformat:"2g" }}</td><td class="n">{{ r.total|floatformat:"2g" }}</td></tr>{% endfor %}
+<tr><td colspan="3"><strong>Subtotal: pay this administrator</strong></td><td class="n">{{ g.ee|floatformat:"2g" }}</td><td class="n">{{ g.er|floatformat:"2g" }}</td><td class="n"><strong>{{ g.total|floatformat:"2g" }}</strong></td></tr></tbody></table></div>
+{% empty %}<p class="mut">No pension was deducted in this run.</p>{% endfor %}
+{% if data.groups %}<p><strong>Total pension: ₦{{ data.total|floatformat:"2g" }}</strong> (employee {{ data.ee|floatformat:"2g" }}, employer {{ data.er|floatformat:"2g" }})</p>{% endif %}
+{% endif %}{% endblock %}

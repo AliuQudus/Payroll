@@ -1,0 +1,6 @@
+{% extends "payroll/base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block content %}<h1>{{ title }}</h1>
+<form method="post" class="card"{% if multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+{{ form.non_field_errors }}
+{% for f in form %}<label>{{ f.label }}{% if f.help_text %} <span class="help">{{ f.help_text }}</span>{% endif %}<br>{{ f }}</label>{{ f.errors }}{% endfor %}
+<p style="margin-top:18px"><button class="p">Save</button> <a class="btn" href="{{ back_url }}">Cancel</a></p></form>{% endblock %}

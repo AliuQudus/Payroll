@@ -1,0 +1,11 @@
+{% extends "payroll/base.html" %}{% block title %}Overtime{% endblock %}
+{% block content %}
+<div class="bar"><h1>Overtime</h1><span><a class="btn p" href="{% url 'attendance:overtime_new' %}">Record overtime</a></span></div>
+<form method="get" class="card" style="display:flex;gap:10px;align-items:center"><label style="margin:0">Show <select name="status" onchange="this.form.submit()" style="width:auto">
+<option value="">All</option>{% for value, label in statuses %}<option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></form>
+<div class="card scroll"><table><thead><tr><th>Date</th><th>Employee</th><th class="n">Hours</th><th>Day</th><th class="n">Amount</th><th>Status</th><th></th></tr></thead><tbody>
+{% for r in requests %}<tr><td>{{ r.date|date:"j M Y" }}</td><td>{{ r.employee }}</td><td class="n">{{ r.hours|floatformat:"-2" }}</td><td>{{ r.get_day_type_display }}</td>
+<td class="n">{% if r.amount %}{{ r.amount|floatformat:"2g" }}{% endif %}</td><td><span class="tag">{{ r.get_status_display }}</span></td>
+<td class="act"><a href="{% url 'attendance:overtime_detail' r.pk %}">Open</a></td></tr>
+{% empty %}<tr><td colspan="7" class="mut">No overtime recorded.</td></tr>{% endfor %}</tbody></table></div>
+{% if user.is_superuser %}<p><a href="{% url 'attendance:settings' %}">Overtime rules</a></p>{% endif %}{% endblock %}

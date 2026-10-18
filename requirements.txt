@@ -1,0 +1,4 @@
+Django>=4.2
+cryptography>=42
+# optional: draws the QR code on the two-factor setup page (a typed-in setup key is shown either way)
+# segno>=1.6

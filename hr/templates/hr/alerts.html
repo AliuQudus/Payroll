@@ -1,0 +1,28 @@
+{% extends "payroll/base.html" %}{% block title %}HR alerts{% endblock %}
+{% block content %}
+<div class="bar"><h1>HR alerts</h1>
+<span>Look ahead: <a href="?days=30"{% if days == 30 %} class="tag"{% endif %}>30 days</a> · <a href="?days=60"{% if days == 60 %} class="tag"{% endif %}>60 days</a> · <a href="?days=90"{% if days == 90 %} class="tag"{% endif %}>90 days</a></span></div>
+<p class="mut">{% if needs_action %}{{ needs_action }} item{{ needs_action|pluralize }} need{{ needs_action|pluralize:"s," }} attention.{% else %}Nothing needs attention in the next {{ days }} days.{% endif %} Only active employees are shown.</p>
+
+{% if documents %}<div class="card scroll"><strong>Documents expiring or expired</strong><table style="margin-top:8px"><thead><tr><th>Employee</th><th>Document</th><th>Expires</th><th></th></tr></thead><tbody>
+{% for d, left in documents %}<tr><td><a href="{% url 'hr:detail' d.employee.pk %}">{{ d.employee }}</a></td><td>{{ d.title }} ({{ d.get_kind_display }})</td><td>{{ d.expiry_date|date:"j M Y" }}</td>
+<td>{% if left < 0 %}<span style="color:var(--er)">Expired {{ left|cut:"-" }} day{{ left|cut:"-"|pluralize }} ago</span>{% elif left == 0 %}<span style="color:var(--er)">Expires today</span>{% else %}In {{ left }} day{{ left|pluralize }}{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+
+{% if contracts %}<div class="card scroll"><strong>Contracts ending or overdue</strong><table style="margin-top:8px"><thead><tr><th>Employee</th><th>Job title</th><th>Contract ends</th><th></th></tr></thead><tbody>
+{% for p, left in contracts %}<tr><td><a href="{% url 'hr:detail' p.employee.pk %}">{{ p.employee }}</a></td><td>{{ p.job_title }}</td><td>{{ p.contract_end_date|date:"j M Y" }}</td>
+<td>{% if left < 0 %}<span style="color:var(--er)">Ended {{ left|cut:"-" }} day{{ left|cut:"-"|pluralize }} ago and still active</span>{% elif left == 0 %}<span style="color:var(--er)">Ends today</span>{% else %}In {{ left }} day{{ left|pluralize }}{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+
+{% if probation %}<div class="card scroll"><strong>Probation ending</strong><table style="margin-top:8px"><thead><tr><th>Employee</th><th>Job title</th><th>Probation ends</th><th></th></tr></thead><tbody>
+{% for p, left in probation %}<tr><td><a href="{% url 'hr:detail' p.employee.pk %}">{{ p.employee }}</a></td><td>{{ p.job_title }}</td><td>{{ p.probation_end_date|date:"j M Y" }}</td><td>{% if left == 0 %}Today{% else %}In {{ left }} day{{ left|pluralize }}{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+
+{% if missing %}<div class="card"><strong>No HR record yet</strong><p class="mut" style="margin:4px 0 8px">These active employees have no job title or hire date on file.</p>
+{% for e in missing %}<a href="{% url 'hr:profile_edit' e.pk %}">{{ e }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}
+
+{% if birthdays or anniversaries %}<div class="card scroll"><strong>Coming up</strong><table style="margin-top:8px"><tbody>
+{% for p, when, left in birthdays %}<tr><td>Birthday</td><td><a href="{% url 'hr:detail' p.employee.pk %}">{{ p.employee }}</a></td><td>{{ when|date:"D j M" }}</td><td class="mut">{% if left == 0 %}Today{% else %}In {{ left }} day{{ left|pluralize }}{% endif %}</td></tr>{% endfor %}
+{% for p, when, years in anniversaries %}<tr><td>Work anniversary</td><td><a href="{% url 'hr:detail' p.employee.pk %}">{{ p.employee }}</a></td><td>{{ when|date:"D j M" }}</td><td class="mut">{{ years }} year{{ years|pluralize }}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+{% endblock %}

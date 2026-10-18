@@ -1,0 +1,15 @@
+{% extends "payroll/base.html" %}{% block title %}Salaries{% endblock %}
+{% block content %}
+<div class="bar"><h1>Salaries</h1><a href="{% url 'salary:grades' %}">Pay grades</a></div>
+{% if pending %}<div class="card scroll"><strong>Back pay waiting for the {{ pending_month|date:"F Y" }} payroll</strong>
+<p class="mut" style="margin:4px 0 8px">These come from salary changes dated in months that were already approved. They are added when you generate the run.</p>
+<table><thead><tr><th>Employee</th><th class="n">Back pay to add</th><th class="n">Overpaid, not recovered</th></tr></thead><tbody>
+{% for p in pending %}<tr><td><a href="{% url 'salary:detail' p.employee.pk %}">{{ p.employee }}</a></td><td class="n">{{ p.owed|floatformat:"2g" }}</td><td class="n">{% if p.overpaid %}{{ p.overpaid|floatformat:"2g" }}{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+<div class="card scroll"><table><thead><tr><th>No.</th><th>Name</th><th class="n">Monthly gross</th><th>Grade</th><th>Last change</th><th class="n">Changes</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.emp.employee_no }}</td><td><a href="{% url 'salary:detail' r.emp.pk %}">{{ r.emp }}</a></td>
+<td class="n">{{ r.gross|floatformat:"2g" }}</td><td>{{ r.current.grade|default:"" }}</td>
+<td>{% if r.last %}{{ r.last.effective_from|date:"M Y" }}{% else %}<span class="mut">No history</span>{% endif %}</td><td class="n">{{ r.count }}</td>
+<td>{% if r.warning %}<span class="tag" style="color:var(--er)" title="{{ r.warning }}">Outside band</span>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="7" class="mut">No active employees.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "payroll/base.html" %}{% block title %}Remittances{% endblock %}
+{% block content %}
+<div class="bar"><h1>Statutory remittances</h1>{% if user.is_superuser %}<a href="{% url 'remittances:deadlines' %}">Deadlines</a>{% endif %}</div>
+<p class="mut">PAYE and pension owed from approved and paid payroll runs, the last 12 months. Amounts come straight from the payslips.</p>
+{% if summary.overdue %}<div class="msg error">{{ summary.overdue|length }} remittance{{ summary.overdue|length|pluralize }} overdue.</div>{% endif %}
+{% if summary.outstanding %}<p>Total still to pay: <span class="net">₦{{ summary.outstanding|floatformat:"2g" }}</span></p>{% endif %}
+<div class="card scroll"><table><thead><tr><th>Payroll month</th><th>Remittance</th><th class="n">Due</th><th class="n">Paid</th><th class="n">Outstanding</th><th>Deadline</th><th>Status</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.run.year }}-{{ r.run.month|stringformat:"02d" }}</td><td>{{ r.label }}</td>
+<td class="n">{{ r.due|floatformat:"2g" }}</td><td class="n">{{ r.paid|floatformat:"2g" }}</td><td class="n">{{ r.outstanding|floatformat:"2g" }}</td>
+<td>{{ r.deadline|date:"j M Y" }}</td>
+<td>{% if r.status == "Overdue" %}<span class="tag" style="color:var(--er)">Overdue</span>{% else %}<span class="tag">{{ r.status }}</span>{% endif %}</td>
+<td class="act"><a href="{% url 'remittances:schedule' r.run.pk r.authority|slugify %}">Open</a></td></tr>
+{% empty %}<tr><td colspan="8" class="mut">Nothing yet. Remittances appear here once a payroll run is approved.</td></tr>{% endfor %}
+</tbody></table></div>{% endblock %}

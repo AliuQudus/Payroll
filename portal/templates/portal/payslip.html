@@ -1,0 +1,8 @@
+{% extends "portal/base.html" %}{% block title %}Payslip{% endblock %}
+{% block content %}
+<div class="bar noprint"><a href="{% url 'portal:payslips' %}">Back to payslips</a><button onclick="window.print()">Print</button></div>
+<div class="card"><h1>{{ slip.employee.company.name }}</h1>
+<p class="mut">Payslip for {{ slip.run.year }}-{{ slip.run.month|stringformat:"02d" }}<br>
+{{ slip.employee.employee_no }} · {{ slip.employee.first_name }} {{ slip.employee.last_name }}{% if slip.employee.department %} · {{ slip.employee.department }}{% endif %}</p>
+{% for label, lines in groups %}<h3>{{ label }}</h3><table>{% for l in lines %}<tr><td>{{ l.name }}</td><td class="n">{{ l.amount|floatformat:"2g" }}</td></tr>{% endfor %}</table>{% endfor %}
+<p style="margin-top:18px">Net pay <span class="net">{{ slip.net_pay|floatformat:"2g" }}</span></p></div>{% endblock %}

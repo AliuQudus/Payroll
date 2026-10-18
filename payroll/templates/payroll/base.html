@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme|default:'system' }}"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}Payroll{% endblock %}</title>
+{% include "payroll/_style.html" %}</head><body>
+{% if user.is_authenticated %}<input type="checkbox" id="navtoggle" class="navtoggle noprint" aria-label="Show the menu">
+<div class="app">
+<aside class="side noprint" id="side" aria-label="Main menu">
+<div class="side-head"><span class="brand">Payroll</span>{% if current_company %}<span class="co">{{ current_company.name }}</span>{% endif %}</div>
+<nav class="sidenav" aria-label="Sections">{% for m in nav_modules %}<a href="{{ m.url }}" class="item{% if m.active %} on{% endif %}"{% if m.active %} aria-current="page"{% endif %}>{{ m.label }}</a>
+{% if m.active and nav_subs %}<div class="subnav">{% for s in nav_subs %}<a href="{{ s.url }}"{% if s.active %} class="on" aria-current="page"{% endif %}>{{ s.label }}</a>{% endfor %}</div>{% endif %}{% endfor %}</nav>
+</aside>
+<label for="navtoggle" class="scrim noprint" aria-hidden="true"></label>
+<div class="main">
+<header class="topbar noprint">
+<label for="navtoggle" class="menu-btn">&#9776; Menu</label>
+<div class="tools">
+<form method="post" action="{% url 'company_switch' %}">{% csrf_token %}
+<select name="company" onchange="this.form.submit()" style="width:auto" aria-label="Company">
+{% for c in companies %}<option value="{{ c.pk }}"{% if c == current_company %} selected{% endif %}>{{ c.name }}</option>{% endfor %}
+</select></form>
+<span>{% if current_company %}<a href="{% url 'company_edit' %}">Company settings</a> · {% endif %}<a href="{% url 'company_new' %}">New company</a> ·
+<a href="{% url 'account' %}" title="Your account and appearance">{{ user.username }}</a></span>
+{% include "payroll/_theme_button.html" %}
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Log out</button></form>
+</div>
+</header>
+{% endif %}
+<div class="wrap">
+{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+{% block content %}{% endblock %}
+</div>
+{% if user.is_authenticated %}</div></div>{% endif %}
+{% if user.is_authenticated %}{% include "payroll/_theme_script.html" %}{% endif %}
+</body></html>

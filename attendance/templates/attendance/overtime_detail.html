@@ -1,0 +1,19 @@
+{% extends "payroll/base.html" %}{% block title %}Overtime{% endblock %}
+{% block content %}
+<div class="bar"><h1>{{ req.employee }}: {{ req.hours|floatformat:"-2" }} hour(s) <span class="tag">{{ req.get_status_display }}</span></h1><a href="{% url 'attendance:overtime' %}">All overtime</a></div>
+<div class="card"><table>
+<tr><td class="mut">Day worked</td><td>{{ req.date|date:"l j F Y" }} ({{ req.get_day_type_display }})</td></tr>
+{% if req.reason %}<tr><td class="mut">Reason</td><td>{{ req.reason }}</td></tr>{% endif %}
+<tr><td class="mut">Recorded by</td><td>{{ req.requested_by|default:"-" }}</td></tr>
+{% if req.amount %}<tr><td class="mut">Hourly rate</td><td>{{ req.hourly_rate|floatformat:"2g" }} &times; {{ req.multiplier|floatformat:"-2" }}</td></tr>
+<tr><td class="mut">Amount to pay</td><td><span class="net">{{ req.amount|floatformat:"2g" }}</span>{% if paid %} <span class="tag">Paid</span>{% endif %}</td></tr>{% endif %}
+{% if estimate %}<tr><td class="mut">If approved now</td><td>{{ estimate.rate|floatformat:"2g" }} &times; {{ estimate.multiplier|floatformat:"-2" }} &times; {{ req.hours|floatformat:"-2" }} = <strong>{{ estimate.amount|floatformat:"2g" }}</strong></td></tr>{% endif %}
+{% if req.decided_by %}<tr><td class="mut">Decision</td><td>{{ req.get_status_display }} by {{ req.decided_by }} on {{ req.decided_at|date:"j M Y" }}{% if req.decision_note %}: {{ req.decision_note }}{% endif %}</td></tr>{% endif %}
+</table></div>
+{% if req.status == "PENDING" or req.status == "APPROVED" %}<div class="card">
+{% if req.status == "PENDING" and not can_decide %}<p class="mut">Waiting for {{ waiting_for|join:", " }} to approve or reject this.</p>{% endif %}
+<form method="post" class="btns"><label>Note (optional)<br><input name="note" maxlength="300"></label><br>{% csrf_token %}
+{% if req.status == "PENDING" and can_decide %}<button class="p" formaction="{% url 'attendance:overtime_decide' req.pk 'approve' %}">Approve</button>
+<button class="d" formaction="{% url 'attendance:overtime_decide' req.pk 'reject' %}">Reject</button>{% endif %}
+{% if can_decide or req.status == "PENDING" %}<button formaction="{% url 'attendance:overtime_decide' req.pk 'cancel' %}">Cancel request</button>{% endif %}</form></div>{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "portal/base.html" %}{% block title %}My details{% endblock %}
+{% block content %}<h1>My details</h1>
+<div class="card"><table>
+<tr><td class="mut">Name</td><td>{{ request.employee.first_name }} {{ request.employee.last_name }}</td></tr>
+<tr><td class="mut">Employee number</td><td>{{ request.employee.employee_no }}</td></tr>
+{% if request.employee.department %}<tr><td class="mut">Department</td><td>{{ request.employee.department }}</td></tr>{% endif %}
+{% if profile %}<tr><td class="mut">Job title</td><td>{{ profile.job_title }}</td></tr>
+<tr><td class="mut">Employment type</td><td>{{ profile.get_employment_type_display }}</td></tr>
+<tr><td class="mut">Hired</td><td>{{ profile.hire_date|date:"j M Y" }}</td></tr>
+{% if profile.manager %}<tr><td class="mut">Reports to</td><td>{{ profile.manager }}</td></tr>{% endif %}{% endif %}
+</table>{% if not profile %}<p class="mut" style="margin-bottom:0">HR has not set up the rest of your record yet.</p>{% endif %}</div>
+{% if profile %}<div class="card"><div class="bar"><strong>Contact details</strong><a class="btn" href="{% url 'portal:details_edit' %}">Update</a></div><table>
+<tr><td class="mut">Phone</td><td>{{ profile.phone|default:"-" }}</td></tr><tr><td class="mut">Address</td><td>{{ profile.address|default:"-" }}</td></tr></table></div>
+<div class="card"><strong>Tax and pension</strong><table style="margin-top:8px">
+<tr><td class="mut">Tax identification number</td><td>{{ profile.tax_id|default:"-" }}</td></tr>
+<tr><td class="mut">Pension RSA PIN</td><td>{{ profile.rsa_pin|default:"-" }}</td></tr>
+<tr><td class="mut">Pension fund administrator</td><td>{{ profile.pension_administrator|default:"-" }}</td></tr></table>
+<p class="mut" style="margin-bottom:0">To correct any of these, ask HR.</p></div>{% endif %}
+<div class="card"><strong>Bank account</strong><table style="margin-top:8px"><tr><td class="mut">Bank</td><td>{{ request.employee.bank_name|default:"-" }}</td></tr>
+<tr><td class="mut">Account number</td><td>{{ account_masked|default:"-" }}</td></tr></table>
+<p class="mut" style="margin-bottom:0">Bank details can only be changed by HR, to keep your pay safe.</p></div>
+<div class="card"><div class="bar"><strong>Emergency contacts</strong><a class="btn" href="{% url 'portal:contact_new' %}">Add contact</a></div>
+<table><thead><tr><th>Name</th><th>Relationship</th><th>Phone</th><th></th></tr></thead><tbody>
+{% for c in contacts %}<tr><td>{{ c.name }}{% if c.is_next_of_kin %} <span class="tag">Next of kin</span>{% endif %}</td><td>{{ c.relationship }}</td><td>{{ c.phone }}</td>
+<td class="act"><a href="{% url 'portal:contact_edit' c.pk %}">Edit</a>
+<form method="post" action="{% url 'portal:contact_delete' c.pk %}" style="display:inline" onsubmit="return confirm('Remove this contact?')">{% csrf_token %}<button class="d" style="padding:2px 8px">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="4" class="mut">No contacts yet.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

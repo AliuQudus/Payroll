@@ -1,0 +1,67 @@
+<style>
+/* Colours. Light is the base; dark applies when chosen, or when the device prefers it and light was not chosen. */
+:root{color-scheme:light;--bg:#f4f6f8;--card:#fff;--tx:#14202b;--mut:#5f6c79;--bd:#d9e0e7;--ac:#0b5d75;--acbg:#e2f1f5;--er:#b42318;--ok:#067647;--warn:#b54708}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f151b;--card:#18212a;--tx:#e6ebf0;--mut:#93a1ae;--bd:#2a3541;--ac:#5cc0dc;--acbg:#12313c;--er:#f97066;--ok:#47cd89;--warn:#fdb022}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f151b;--card:#18212a;--tx:#e6ebf0;--mut:#93a1ae;--bd:#2a3541;--ac:#5cc0dc;--acbg:#12313c;--er:#f97066;--ok:#47cd89;--warn:#fdb022}}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--ac)}h1{font-size:22px;margin:0}.brand{font-weight:700}
+.wrap{max-width:1120px;margin:0 auto;padding:16px}
+
+/* The employee portal keeps a header with tabs across the top */
+header{background:var(--card);border-bottom:1px solid var(--bd)}
+.top{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.top form{display:inline;margin:0}
+header nav{max-width:1120px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+header nav a{padding:8px 14px;text-decoration:none;color:var(--mut);border-bottom:3px solid transparent;white-space:nowrap}
+header nav a.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+
+/* Staff layout: a vertical menu down the left, the page to its right */
+.app{display:flex;min-height:100vh}
+.side{flex:0 0 232px;width:232px;box-sizing:border-box;background:var(--card);border-right:1px solid var(--bd);position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.side-head{padding:16px 18px 12px;border-bottom:1px solid var(--bd);display:flex;flex-direction:column;gap:2px}
+.side-head .brand{font-size:18px}.side-head .co{color:var(--mut);font-size:13px;overflow-wrap:anywhere}
+.sidenav{padding:8px;display:flex;flex-direction:column;gap:2px}
+.sidenav a{display:block;padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--tx)}
+.sidenav a:hover{background:var(--acbg)}
+.sidenav a.item.on{background:var(--acbg);color:var(--ac);font-weight:600}
+.subnav{display:flex;flex-direction:column;margin:2px 0 8px 18px;padding-left:8px;border-left:2px solid var(--bd)}
+.subnav a{padding:5px 10px;font-size:14px;color:var(--mut)}.subnav a.on{color:var(--ac);font-weight:600;background:transparent}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
+.tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-left:auto}.tools form{margin:0}
+.app .wrap{max-width:1180px;margin:0;width:100%;box-sizing:border-box}
+.menu-btn,.navtoggle,.scrim{display:none}
+.theme-btn{display:inline-flex;gap:6px;align-items:center}
+@media (max-width:860px){
+ .side{position:fixed;left:0;top:0;z-index:30;transform:translateX(-102%);transition:transform .18s ease;box-shadow:0 0 24px rgba(0,0,0,.35)}
+ .navtoggle{display:block;position:absolute;opacity:0;width:1px;height:1px}
+ .menu-btn{display:inline-block;cursor:pointer;border:1px solid var(--bd);border-radius:6px;padding:7px 12px}
+ .navtoggle:focus-visible + .app .menu-btn{outline:2px solid var(--ac)}
+ .navtoggle:checked + .app .side{transform:none}
+ .navtoggle:checked + .app .scrim{display:block;position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45)}
+}
+
+/* Pages */
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:16px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;color:var(--mut);font-weight:600;padding:6px 8px;white-space:nowrap}td{padding:6px 8px;border-top:1px solid var(--bd)}
+.n{text-align:right;font-variant-numeric:tabular-nums}.mut{color:var(--mut)}.act a{margin-right:10px}
+input,select,textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:7px 9px;width:100%;box-sizing:border-box;max-width:420px}
+input[type=hidden]{display:none!important}input[type=checkbox],input[type=radio]{width:auto;padding:0;accent-color:var(--ac)}label{display:block;font-weight:600;margin-top:12px}.help{color:var(--mut);font-size:13px;font-weight:400}
+.errorlist{color:var(--er);margin:4px 0;padding:0;list-style:none;font-size:13px}
+.btn,button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 14px;text-decoration:none;display:inline-block}
+.btn.p,button.p{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600}.btn.d,button.d{color:var(--er)}
+.msg{padding:10px 14px;border-radius:8px;margin-bottom:12px;background:var(--acbg)}.msg.warning{background:transparent;border:1px solid var(--warn);color:var(--warn)}.msg.error{background:transparent;border:1px solid var(--er);color:var(--er)}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--acbg);font-size:13px;font-weight:600}
+.btns form{display:inline-block;margin:0 6px 6px 0}.net{font-size:22px;font-weight:700;color:var(--ac)}
+.choice{display:flex;gap:10px;align-items:flex-start;font-weight:400;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;margin-top:8px;cursor:pointer}
+.choice input{margin-top:4px}.choice strong{display:block}
+
+/* Paper is always light, whichever theme is chosen */
+@media print{
+ :root,:root:not([data-theme="light"]),:root[data-theme="dark"]{color-scheme:light;--bg:#fff;--card:#fff;--tx:#000;--mut:#444;--bd:#ccc;--ac:#000;--acbg:#eee;--er:#b42318;--ok:#067647;--warn:#b54708}
+ header,.noprint,.side,.topbar,.scrim,.menu-btn{display:none!important}
+ .app{display:block}.app .wrap{max-width:none}body{background:#fff;color:#000}.card{border:0}
+}
+</style>
